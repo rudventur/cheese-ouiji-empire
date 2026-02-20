@@ -1,0 +1,12 @@
+body { margin:0; background:#2c1e16; color:#f4d03f; font-family:'Press Start 2P',system-ui; text-align:center; }
+h1 { font-family:'Creepster',cursive; font-size:2.8rem; margin:20px 0 10px; }
+.container { max-width:680px; margin:auto; padding:15px; }
+.section { border:5px solid #d4a017; border-radius:22px; padding:25px; margin:25px 0; background:#3c2f2f; }
+.slot-machine { display:flex; justify-content:center; gap:20px; margin:30px 0; }
+.reel { width:200px; height:300px; border:7px solid #ffeb3b; border-radius:18px; overflow:hidden; background:#111; box-shadow:0 0 25px #ffeb3b; }
+.reel img { width:100%; height:100%; object-fit:cover; }
+button { background:#ffeb3b; color:#2c1e16; border:none; padding:18px; font-size:20px; border-radius:14px; width:100%; margin-top:15px; cursor:pointer; font-family:inherit; }
+input { width:100%; padding:14px; margin:8px 0; border-radius:8px; border:none; font-size:16px; }
+footer { margin-top:60px; }
+.small { font-size:11px; opacity:0.8; }
+.result { margin-top:25px; font-size:19px; line-height:1.5; }
