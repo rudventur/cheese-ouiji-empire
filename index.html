@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🧀 Cheese Ouiji Empire</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🧀 Cheese Ouiji Empire</h1>
+
+    <div class="section">
+      <h2>🥫 FOOD BANK BANDIT</h2>
+      <div class="slot-machine">
+        <div class="reel" id="reel1"><img src="https://picsum.photos/seed/cheddar/300/400" alt=""></div>
+        <div class="reel" id="reel2"><img src="https://picsum.photos/seed/brie/300/400" alt=""></div>
+        <div class="reel" id="reel3"><img src="https://picsum.photos/seed/stilton/300/400" alt=""></div>
+      </div>
+      <button onclick="spinBandit()">PULL THE LEVER 🚀</button>
+      <div id="result" class="result"></div>
+    </div>
+
+    <div class="section">
+      <h2>☕ Support Rudventur</h2>
+      <a href="https://ko-fi.com/rudventur" target="_blank"><button>Donate to My Ko-fi ❤️</button></a>
+    </div>
+
+    <div class="section">
+      <h2>➕ Submit a Food Bank</h2>
+      <input id="name" placeholder="Food Bank Name">
+      <input id="country" placeholder="Country">
+      <input id="url" placeholder="Donation URL">
+      <button onclick="submitFoodBank()">Submit for Review</button>
+      <div id="submitMsg" class="small"></div>
+    </div>
+
+    <footer>
+      <button onclick="toggleRoyal()">👑 Royal Mode</button>
+      <div id="royalPanel" style="display:none; margin-top:20px;">
+        <div class="section">
+          <h3>Admin Dashboard (Demo)</h3>
+          <p id="pending">Pending: 0</p>
+          <p id="approved">Approved & Live: 0</p>
+          <button onclick="loadFoodBanks()">Refresh Counts</button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/bandit.js"></script>
+</body>
+</html>
