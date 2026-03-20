@@ -604,7 +604,7 @@ body {
     <p style="color:#00ffff; margin-top:8px; text-shadow:0 0 8px #00ffff;">500 Food Banks from the Bandit999 Empire</p>
   </div>
 
-  <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search food banks by name or country..." oninput="filterFoodBanks()">
+  <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search by name, city, or borough..." oninput="filterFoodBanks()">
 
   <div class="foodbank-stats" id="fbStats">Loading the steak...</div>
 
@@ -709,11 +709,15 @@ function renderFoodBanks(banks) {
   }
   grid.innerHTML = banks.map(fb => {
     const isSelected = selectedForBandits.has(fb.id);
+    const location = [fb.borough, fb.city].filter(Boolean).join(', ') || 'Unknown';
+    const donateUrl = fb.donations_url || fb.url || '';
     return `
     <div class="foodbank-card">
       <div class="fb-name"><span class="fb-emoji-badge">${fb.emoji}</span> ${escapeHtml(fb.name || 'Unknown')}</div>
-      <div class="fb-country">📍 ${escapeHtml(fb.country || 'Unknown')}</div>
-      ${fb.url ? `<div class="fb-link"><a href="${escapeHtml(fb.url)}" target="_blank" rel="noopener">🔗 DONATE HERE</a></div>` : ''}
+      <div class="fb-country">📍 ${escapeHtml(location)}</div>
+      ${fb.address ? `<div class="fb-country" style="color:#aaa;font-size:0.75rem;">🏠 ${escapeHtml(fb.address)}${fb.postcode ? ', ' + escapeHtml(fb.postcode) : ''}</div>` : ''}
+      ${fb.opening_hours ? `<div class="fb-country" style="color:#88ff88;font-size:0.75rem;">🕐 ${escapeHtml(fb.opening_hours)}</div>` : ''}
+      ${donateUrl ? `<div class="fb-link"><a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener">🔗 DONATE HERE</a></div>` : ''}
       <div class="fb-bandit-toggle">
         <button class="fb-toggle-btn ${isSelected ? 'selected' : ''}" onclick="toggleBanditFB('${fb.id}')">
           ${isSelected ? '🎰 ON REELS' : '➕ ADD TO REELS'}
@@ -735,7 +739,8 @@ function filterFoodBanks() {
   const q = document.getElementById('searchBox').value.toLowerCase();
   const filtered = allFoodBanks.filter(fb =>
     (fb.name || '').toLowerCase().includes(q) ||
-    (fb.country || '').toLowerCase().includes(q)
+    (fb.city || '').toLowerCase().includes(q) ||
+    (fb.borough || '').toLowerCase().includes(q)
   );
   renderFoodBanks(filtered);
   document.getElementById('fbStats').textContent =
@@ -749,7 +754,7 @@ function toggleBanditFB(fbId) {
   } else {
     const fb = allFoodBanks.find(f => f.id === fbId);
     if (fb) {
-      selectedForBandits.set(fbId, { emoji: fb.emoji, name: fb.name, url: fb.url });
+      selectedForBandits.set(fbId, { emoji: fb.emoji, name: fb.name, url: fb.donations_url || fb.url });
     }
   }
   updateBanditSymbols();
@@ -768,7 +773,7 @@ function selectRandomFBs(count) {
   const shuffled = [...allFoodBanks].sort(() => Math.random() - 0.5);
   const pick = shuffled.slice(0, Math.min(count, shuffled.length));
   pick.forEach(fb => {
-    selectedForBandits.set(fb.id, { emoji: fb.emoji, name: fb.name, url: fb.url });
+    selectedForBandits.set(fb.id, { emoji: fb.emoji, name: fb.name, url: fb.donations_url || fb.url });
   });
   updateBanditSymbols();
   updateChipsDisplay();
