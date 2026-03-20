@@ -1,55 +1,756 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>🧀 Cheese Ouiji Empire</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧀 CHEESE BANDIT999 - FOOD BANK EMPIRE 🥩</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #000;
+  color: #00ff41;
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 20px #ffeb3b;
+  animation: titleGlow 2s ease-in-out infinite;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 30px;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+  animation: subtitlePulse 3s ease-in-out infinite;
+}
+
+@keyframes subtitlePulse {
+  0%, 100% { opacity: 1; color: #00ffff; }
+  50% { opacity: 0.7; color: #ff00ff; }
+}
+
+@keyframes titleGlow {
+  0%, 100% { color: #ffeb3b; text-shadow: 0 0 20px #ffeb3b; }
+  50% { color: #ff00ff; text-shadow: 0 0 30px #ff00ff, 0 0 40px #00ffff; }
+}
+
+/* === NAVIGATION TABS === */
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.nav-tab {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  border: 2px solid #00ff41;
+  background: rgba(0, 255, 65, 0.1);
+  color: #00ff41;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s;
+  text-shadow: 0 0 5px currentColor;
+}
+
+.nav-tab:hover {
+  background: rgba(0, 255, 65, 0.3);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+  transform: scale(1.05);
+}
+
+.nav-tab.active {
+  background: rgba(0, 255, 65, 0.4);
+  box-shadow: 0 0 25px rgba(0, 255, 65, 0.8);
+  border-color: #ffeb3b;
+  color: #ffeb3b;
+}
+
+.tab-content { display: none; width: 100%; max-width: 1200px; }
+.tab-content.active { display: block; }
+
+/* === BANDIT MACHINE STYLES === */
+.machine-container {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.bandit-machine {
+  position: relative;
+  padding: 20px;
+  border: 3px solid #00ff41;
+  border-radius: 10px;
+  background: rgba(0, 20, 0, 0.9);
+  box-shadow: 0 0 30px rgba(0, 255, 65, 0.6);
+  animation: machineGlow 3s ease-in-out infinite;
+}
+
+@keyframes machineGlow {
+  0%, 100% { border-color: #00ff41; box-shadow: 0 0 30px rgba(0, 255, 65, 0.6); }
+  33% { border-color: #ff00ff; box-shadow: 0 0 40px rgba(255, 0, 255, 0.8); }
+  66% { border-color: #00ffff; box-shadow: 0 0 40px rgba(0, 255, 255, 0.8); }
+}
+
+.ascii-frame {
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: pre;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #00ff41;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.frame-top { animation: colorCycle1 4s infinite; }
+.frame-mid { animation: colorCycle2 4s infinite; }
+.frame-bot { animation: colorCycle3 4s infinite; }
+
+@keyframes colorCycle1 { 0%, 100% { color: #00ff41; } 33% { color: #ff00ff; } 66% { color: #00ffff; } }
+@keyframes colorCycle2 { 0%, 100% { color: #ff00ff; } 33% { color: #00ffff; } 66% { color: #ffeb3b; } }
+@keyframes colorCycle3 { 0%, 100% { color: #00ffff; } 33% { color: #ffeb3b; } 66% { color: #00ff41; } }
+
+.flicker-face { display: inline-block; font-size: 1.2em; }
+.flicker-face::before { content: '🎃'; animation: emojiSwap 1.5s infinite; }
+@keyframes emojiSwap { 0%, 45% { content: '🎃'; } 50%, 95% { content: '🤡'; } }
+
+.colon-animation { display: inline-block; }
+.colon-animation::before { content: ':D'; animation: textFlicker 1s infinite; }
+@keyframes textFlicker { 0%, 45% { content: ':D'; } 50%, 95% { content: ':@D'; } }
+
+.reels-container { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
+
+.reel {
+  width: 80px; height: 180px;
+  border: 3px solid #ffeb3b; border-radius: 8px;
+  background: #000; overflow: hidden; position: relative;
+  box-shadow: 0 0 20px rgba(255, 235, 59, 0.6);
+}
+
+.reel-track { position: absolute; top: 0; left: 0; right: 0; animation: spin 2s linear infinite; }
+@keyframes spin { from { transform: translateY(0); } to { transform: translateY(-240px); } }
+.reel.stopped .reel-track { animation: none; }
+
+.symbol { height: 60px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; border-bottom: 1px solid rgba(255, 235, 59, 0.3); }
+.symbol.top, .symbol.bottom { transform: scaleX(0.5); opacity: 0.6; font-size: 2rem; }
+.symbol.middle { transform: scaleX(1.8); font-size: 3rem; text-shadow: 0 0 15px currentColor; }
+
+.handle-container { display: flex; flex-direction: column; align-items: center; margin-top: 20px; cursor: pointer; }
+.handle-shaft { font-size: 1.5rem; line-height: 1; color: #ffeb3b; text-shadow: 0 0 10px #ffeb3b; }
+.handle-ball { font-size: 2.5rem; color: #ff0000; animation: ballGlow 2s infinite; }
+@keyframes ballGlow { 0%, 100% { text-shadow: 0 0 10px #ff0000; } 50% { text-shadow: 0 0 20px #ff0000, 0 0 30px #ffeb3b; } }
+
+.status { text-align: center; font-size: 1.5rem; margin-top: 20px; color: #ffeb3b; text-shadow: 0 0 20px #ffeb3b; min-height: 40px; }
+
+.controls { display: flex; gap: 20px; margin-top: 30px; flex-wrap: wrap; justify-content: center; }
+
+.btn {
+  padding: 15px 30px; font-size: 1.2rem; font-family: 'Courier New', monospace; font-weight: bold;
+  border: 2px solid #00ff41; background: rgba(0, 255, 65, 0.2); color: #00ff41;
+  cursor: pointer; border-radius: 8px; transition: all 0.3s; text-shadow: 0 0 5px currentColor;
+}
+.btn:hover { background: rgba(0, 255, 65, 0.4); box-shadow: 0 0 20px rgba(0, 255, 65, 0.8); transform: scale(1.05); }
+.btn:active { transform: scale(0.95); }
+
+/* === JACKPOT OVERLAY === */
+#jackpot {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.85);
+}
+.jackpot-text {
+  font-size: 6rem; font-weight: bold;
+  text-shadow: 0 0 40px #ff00ff, 0 0 80px #00ffff, 0 0 120px #ffeb3b;
+  animation: jackpotPulse 1.2s infinite alternate; margin-bottom: 40px; z-index: 10;
+}
+@keyframes jackpotPulse { 0% { transform: scale(1); text-shadow: 0 0 40px #ff00ff; } 100% { transform: scale(1.15); text-shadow: 0 0 100px #ffeb3b, 0 0 140px #00ffff; } }
+
+.particle {
+  position: absolute; font-size: 3rem; pointer-events: none; user-select: none;
+  will-change: transform, opacity; animation: fall linear forwards;
+}
+@keyframes fall { 0% { transform: translateY(-120vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(120vh) rotate(720deg); opacity: 0; } }
+
+/* === FOOD BANK SECTION === */
+.foodbank-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.foodbank-header h2 {
+  font-size: 2rem;
+  color: #ffeb3b;
+  text-shadow: 0 0 20px #ffeb3b, 0 0 40px #ff00ff;
+  animation: steakGlow 3s ease-in-out infinite;
+}
+
+@keyframes steakGlow {
+  0%, 100% { color: #ffeb3b; text-shadow: 0 0 20px #ffeb3b; }
+  33% { color: #ff6b35; text-shadow: 0 0 30px #ff6b35, 0 0 50px #ff0000; }
+  66% { color: #00ff41; text-shadow: 0 0 30px #00ff41; }
+}
+
+.search-box {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 25px;
+  display: block;
+  padding: 14px 20px;
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 20, 0, 0.9);
+  border: 2px solid #00ff41;
+  border-radius: 8px;
+  color: #00ff41;
+  text-shadow: 0 0 5px #00ff41;
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+  outline: none;
+  transition: all 0.3s;
+}
+.search-box::placeholder { color: rgba(0, 255, 65, 0.5); }
+.search-box:focus { border-color: #ffeb3b; box-shadow: 0 0 25px rgba(255, 235, 59, 0.6); }
+
+.foodbank-stats {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1rem;
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+.foodbank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 15px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #00ff41 #000;
+}
+
+.foodbank-grid::-webkit-scrollbar { width: 8px; }
+.foodbank-grid::-webkit-scrollbar-track { background: #000; }
+.foodbank-grid::-webkit-scrollbar-thumb { background: #00ff41; border-radius: 4px; }
+
+.foodbank-card {
+  border: 2px solid #00ff41;
+  border-radius: 8px;
+  padding: 15px;
+  background: rgba(0, 20, 0, 0.8);
+  transition: all 0.3s;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+.foodbank-card:hover {
+  border-color: #ffeb3b;
+  box-shadow: 0 0 25px rgba(255, 235, 59, 0.6);
+  transform: translateY(-3px);
+}
+
+.foodbank-card .fb-name {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #ffeb3b;
+  text-shadow: 0 0 8px #ffeb3b;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.foodbank-card .fb-country {
+  font-size: 0.85rem;
+  color: #00ffff;
+  margin-bottom: 8px;
+}
+
+.foodbank-card .fb-link a {
+  color: #ff00ff;
+  text-decoration: none;
+  font-size: 0.85rem;
+  text-shadow: 0 0 5px #ff00ff;
+  transition: all 0.3s;
+}
+.foodbank-card .fb-link a:hover {
+  color: #ffeb3b;
+  text-shadow: 0 0 15px #ffeb3b;
+}
+
+.loading-text {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #ff00ff;
+  text-shadow: 0 0 20px #ff00ff;
+  animation: loadPulse 1s infinite;
+  padding: 40px;
+}
+@keyframes loadPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* === SUBMIT SECTION === */
+.submit-section {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.submit-section h2 {
+  font-size: 1.8rem;
+  color: #ffeb3b;
+  text-shadow: 0 0 20px #ffeb3b;
+  margin-bottom: 20px;
+}
+
+.submit-section input {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  background: rgba(0, 20, 0, 0.9);
+  border: 2px solid #00ff41;
+  border-radius: 8px;
+  color: #00ff41;
+  outline: none;
+}
+.submit-section input::placeholder { color: rgba(0, 255, 65, 0.4); }
+.submit-section input:focus { border-color: #ffeb3b; box-shadow: 0 0 15px rgba(255, 235, 59, 0.4); }
+
+.submit-msg {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  min-height: 24px;
+}
+
+/* === KOFI === */
+.kofi-section {
+  text-align: center;
+  margin-top: 40px;
+  padding: 20px;
+  border: 2px solid #ff00ff;
+  border-radius: 10px;
+  background: rgba(40, 0, 40, 0.5);
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.kofi-section a {
+  color: #ffeb3b;
+  text-decoration: none;
+  font-size: 1.2rem;
+  text-shadow: 0 0 10px #ffeb3b;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .machine-container { flex-direction: column; }
+  .title { font-size: 2rem; }
+  .reels-container { gap: 10px; }
+  .reel { width: 60px; height: 140px; }
+  .symbol { height: 46px; font-size: 1.8rem; }
+  .symbol.middle { font-size: 2.2rem; }
+  .foodbank-grid { grid-template-columns: 1fr; }
+  .jackpot-text { font-size: 3rem; }
+}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧀 Cheese Ouiji Empire</h1>
 
-    <div class="section">
-      <h2>🥫 FOOD BANK BANDIT</h2>
-      <div class="slot-machine">
-        <div class="reel" id="reel1"><img src="https://picsum.photos/seed/cheddar/300/400" alt=""></div>
-        <div class="reel" id="reel2"><img src="https://picsum.photos/seed/brie/300/400" alt=""></div>
-        <div class="reel" id="reel3"><img src="https://picsum.photos/seed/stilton/300/400" alt=""></div>
+<div class="title">
+  <span class="flicker-face"></span> CHEESE BANDIT999 <span class="flicker-face"></span>
+</div>
+<div class="subtitle">🥩 FOOD BANK EMPIRE - ON STEAK 🥩</div>
+
+<!-- NAVIGATION -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showTab('bandits')">🎰 BANDITS</button>
+  <button class="nav-tab" onclick="showTab('foodbanks')">🥩 FOOD BANKS</button>
+  <button class="nav-tab" onclick="showTab('submit')">➕ SUBMIT</button>
+</div>
+
+<!-- ========== TAB 1: BANDIT MACHINES ========== -->
+<div class="tab-content active" id="tab-bandits">
+  <div class="machine-container">
+    <!-- BANDIT MACHINE 1 -->
+    <div class="bandit-machine">
+      <div class="ascii-frame frame-top">╔═══════════════════╗
+║ <span class="colon-animation"></span> BANDIT <span class="flicker-face"></span> 999 ║
+╠═══════════════════╣</div>
+      <div class="reels-container" id="reels1">
+        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
       </div>
-      <button onclick="spinBandit()">PULL THE LEVER 🚀</button>
-      <div id="result" class="result"></div>
-    </div>
-
-    <div class="section">
-      <h2>☕ Support Rudventur</h2>
-      <a href="https://ko-fi.com/rudventur" target="_blank"><button>Donate to My Ko-fi ❤️</button></a>
-    </div>
-
-    <div class="section">
-      <h2>➕ Submit a Food Bank</h2>
-      <input id="name" placeholder="Food Bank Name">
-      <input id="country" placeholder="Country">
-      <input id="url" placeholder="Donation URL">
-      <button onclick="submitFoodBank()">Submit for Review</button>
-      <div id="submitMsg" class="small"></div>
-    </div>
-
-    <footer>
-      <button onclick="toggleRoyal()">👑 Royal Mode</button>
-      <div id="royalPanel" style="display:none; margin-top:20px;">
-        <div class="section">
-          <h3>Admin Dashboard (Demo)</h3>
-          <p id="pending">Pending: 0</p>
-          <p id="approved">Approved & Live: 0</p>
-          <button onclick="loadFoodBanks()">Refresh Counts</button>
-        </div>
+      <div class="ascii-frame frame-bot">╠═══════════════════╣
+║ <span class="flicker-face"></span> <span class="colon-animation"></span> CHEESE <span class="colon-animation"></span> <span class="flicker-face"></span> ║
+╚═══════════════════╝</div>
+      <div class="handle-container" onclick="pullHandle(0)">
+        <div class="handle-ball">●</div>
+        <div class="handle-shaft">║<br>║<br>╱║╲</div>
       </div>
-    </footer>
+    </div>
+
+    <!-- BANDIT MACHINE 2 -->
+    <div class="bandit-machine">
+      <div class="ascii-frame frame-mid">╔═══════════════════╗
+║ <span class="flicker-face"></span> KING <span class="colon-animation"></span> SLOTS ║
+╠═══════════════════╣</div>
+      <div class="reels-container" id="reels2">
+        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
+      </div>
+      <div class="ascii-frame frame-top">╠═══════════════════╣
+║ <span class="colon-animation"></span> <span class="flicker-face"></span> SPLASH <span class="flicker-face"></span> <span class="colon-animation"></span> ║
+╚═══════════════════╝</div>
+      <div class="handle-container" onclick="pullHandle(1)">
+        <div class="handle-ball">●</div>
+        <div class="handle-shaft">║<br>║<br>╱║╲</div>
+      </div>
+    </div>
+
+    <!-- BANDIT MACHINE 3 -->
+    <div class="bandit-machine">
+      <div class="ascii-frame frame-bot">╔═══════════════════╗
+║ <span class="colon-animation"></span> <span class="flicker-face"></span> EMPIRE <span class="flicker-face"></span> ║
+╠═══════════════════╣</div>
+      <div class="reels-container" id="reels3">
+        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
+      </div>
+      <div class="ascii-frame frame-mid">╠═══════════════════╣
+║ <span class="flicker-face"></span> <span class="colon-animation"></span> OUIJI <span class="colon-animation"></span> <span class="flicker-face"></span> ║
+╚═══════════════════╝</div>
+      <div class="handle-container" onclick="pullHandle(2)">
+        <div class="handle-ball">●</div>
+        <div class="handle-shaft">║<br>║<br>╱║╲</div>
+      </div>
+    </div>
   </div>
 
-  <script src="js/bandit.js"></script>
+  <div class="status" id="status">🌊🌊 PULL THE HANDLE! 🌊🌊</div>
+
+  <div class="controls">
+    <button class="btn" onclick="spinAll()">🎰 SPIN ALL THREE!</button>
+    <button class="btn" onclick="autoSpin()">⚡ AUTO SPIN</button>
+  </div>
+</div>
+
+<!-- ========== TAB 2: FOOD BANKS ========== -->
+<div class="tab-content" id="tab-foodbanks">
+  <div class="foodbank-header">
+    <h2>🥩🔥 FOOD BANKS ON STEAK 🔥🥩</h2>
+    <p style="color:#00ffff; margin-top:8px; text-shadow:0 0 8px #00ffff;">500 Food Banks from the Bandit999 Empire</p>
+  </div>
+
+  <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search food banks by name or country..." oninput="filterFoodBanks()">
+
+  <div class="foodbank-stats" id="fbStats">Loading the steak...</div>
+
+  <div class="foodbank-grid" id="foodbankGrid">
+    <div class="loading-text">🥩 GRILLING THE DATA... 🔥</div>
+  </div>
+</div>
+
+<!-- ========== TAB 3: SUBMIT ========== -->
+<div class="tab-content" id="tab-submit">
+  <div class="submit-section">
+    <h2>➕ SUBMIT A FOOD BANK</h2>
+    <div class="ascii-frame frame-mid" style="margin-bottom:20px;">╔════════════════════════════╗
+║ <span class="flicker-face"></span> ADD TO THE EMPIRE <span class="flicker-face"></span> ║
+╚════════════════════════════╝</div>
+    <input id="fbNameInput" placeholder="Food Bank Name">
+    <input id="fbCountryInput" placeholder="Country">
+    <input id="fbUrlInput" placeholder="Donation URL">
+    <button class="btn" onclick="submitFoodBank()" style="width:100%; margin-top:15px;">🥩 SUBMIT FOR REVIEW 🥩</button>
+    <div class="submit-msg" id="submitMsg"></div>
+  </div>
+
+  <div class="kofi-section">
+    <p style="color:#00ffff; margin-bottom:10px;">☕ Support Rudventur</p>
+    <a href="https://ko-fi.com/rudventur" target="_blank">❤️ Donate to Ko-fi ❤️</a>
+  </div>
+</div>
+
+<!-- JACKPOT OVERLAY -->
+<div id="jackpot">
+  <div class="jackpot-text">🌊🌊 JACKPOT!!! 🧀🤡🎰 🌊🌊</div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ============ FIREBASE CONFIG ============
+const firebaseConfig = {
+  apiKey: "AIzaSyDummyKeyReplace",
+  authDomain: "bandit999-b62c9.firebaseapp.com",
+  projectId: "bandit999-b62c9",
+  storageBucket: "bandit999-b62c9.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:0000000000000000"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ============ FOOD BANK DATA ============
+let allFoodBanks = [];
+
+async function loadFoodBanks() {
+  try {
+    const snapshot = await db.collection('foodbanks').orderBy('name').get();
+    allFoodBanks = [];
+    snapshot.forEach(doc => {
+      allFoodBanks.push({ id: doc.id, ...doc.data() });
+    });
+    renderFoodBanks(allFoodBanks);
+    document.getElementById('fbStats').textContent =
+      `🥩 ${allFoodBanks.length} FOOD BANKS ON STEAK 🥩`;
+  } catch (err) {
+    console.error('Firebase load error:', err);
+    document.getElementById('foodbankGrid').innerHTML =
+      '<div class="loading-text">⚠️ Could not load food banks. Check Firebase config.</div>';
+    document.getElementById('fbStats').textContent = 'Connection error - check console';
+  }
+}
+
+function renderFoodBanks(banks) {
+  const grid = document.getElementById('foodbankGrid');
+  if (banks.length === 0) {
+    grid.innerHTML = '<div class="loading-text">No food banks found matching your search</div>';
+    return;
+  }
+  grid.innerHTML = banks.map(fb => `
+    <div class="foodbank-card">
+      <div class="fb-name">🥫 ${escapeHtml(fb.name || 'Unknown')}</div>
+      <div class="fb-country">📍 ${escapeHtml(fb.country || 'Unknown')}</div>
+      ${fb.url ? `<div class="fb-link"><a href="${escapeHtml(fb.url)}" target="_blank" rel="noopener">🔗 DONATE HERE</a></div>` : ''}
+    </div>
+  `).join('');
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+function filterFoodBanks() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const filtered = allFoodBanks.filter(fb =>
+    (fb.name || '').toLowerCase().includes(q) ||
+    (fb.country || '').toLowerCase().includes(q)
+  );
+  renderFoodBanks(filtered);
+  document.getElementById('fbStats').textContent =
+    `🥩 Showing ${filtered.length} of ${allFoodBanks.length} food banks 🥩`;
+}
+
+async function submitFoodBank() {
+  const name = document.getElementById('fbNameInput').value.trim();
+  const country = document.getElementById('fbCountryInput').value.trim();
+  const url = document.getElementById('fbUrlInput').value.trim();
+  const msg = document.getElementById('submitMsg');
+
+  if (!name || !country) {
+    msg.style.color = '#ff0000';
+    msg.textContent = '⚠️ Name and Country are required!';
+    return;
+  }
+
+  try {
+    await db.collection('foodbanks').add({
+      name, country, url,
+      status: 'pending',
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    msg.style.color = '#00ff41';
+    msg.textContent = '✅ Submitted for review! Thank you 🥩';
+    document.getElementById('fbNameInput').value = '';
+    document.getElementById('fbCountryInput').value = '';
+    document.getElementById('fbUrlInput').value = '';
+  } catch (err) {
+    console.error('Submit error:', err);
+    msg.style.color = '#ff0000';
+    msg.textContent = '⚠️ Error submitting. Check console.';
+  }
+}
+
+// Load food banks on init
+loadFoodBanks();
+
+// ============ TAB NAVIGATION ============
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============ SLOT MACHINE ENGINE ============
+const symbols = ['🧀', '🎃', '👑', '💰', '⚡', '🌊', '🤡', '💚', '🔥', '✨', '🎪', '🎭'];
+
+const goodies = [
+  '🧀','🧀','🧀','🧀','🎃','🎃','🎃','🤡','🤡',
+  '💰','💰','💰','🪙','🪙','💎','💎','🪙','🤑',
+  '🍿','🍿','🍿','🍿','🎬','⚡','🌊','💚','✨','🔥',
+  ':D',':@D','👑','🫕','🥛','🥩','🥩','🥩'
+];
+
+let autoSpinning = false;
+let autoSpinInterval = null;
+
+function createParticle() {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  particle.textContent = goodies[Math.floor(Math.random() * goodies.length)];
+  const x = Math.random() * window.innerWidth;
+  particle.style.left = x + 'px';
+  particle.style.top = '-100px';
+  const size = 1.8 + Math.random() * 2.5;
+  particle.style.fontSize = size + 'rem';
+  particle.style.transform = `rotate(${Math.random()*360}deg)`;
+  const duration = 3 + Math.random() * 4;
+  particle.style.animationDuration = duration + 's';
+  particle.style.animationDelay = Math.random() * 0.6 + 's';
+  document.getElementById('jackpot').appendChild(particle);
+  setTimeout(() => particle.remove(), duration * 1000 + 1000);
+}
+
+function triggerJackpot() {
+  const jackpotEl = document.getElementById('jackpot');
+  jackpotEl.style.display = 'flex';
+  for (let i = 0; i < 120; i++) setTimeout(createParticle, i * 30);
+  setTimeout(() => { for (let i = 0; i < 80; i++) setTimeout(createParticle, i * 50); }, 800);
+  setTimeout(() => {
+    jackpotEl.style.display = 'none';
+    jackpotEl.innerHTML = '<div class="jackpot-text">🌊🌊 JACKPOT!!! 🧀🤡🎰 🌊🌊</div>';
+  }, 12000);
+}
+
+function checkJackpot(machineIndex) {
+  setTimeout(() => {
+    const container = document.getElementById(`reels${machineIndex + 1}`);
+    const reels = container.querySelectorAll('.reel');
+    const syms = [];
+    reels.forEach(reel => {
+      const track = reel.querySelector('.reel-track');
+      const midSyms = track.querySelectorAll('.symbol.middle');
+      if (midSyms.length > 0) syms.push(midSyms[0].textContent);
+    });
+    if (syms.length === 3 && syms[0] === syms[1] && syms[1] === syms[2]) {
+      setTimeout(() => {
+        triggerJackpot();
+        document.getElementById('status').innerHTML = `🎰💰 JACKPOT!!! ${syms[0]} ${syms[0]} ${syms[0]} 💰🎰`;
+      }, 500);
+      return true;
+    }
+    return false;
+  }, 2100);
+}
+
+function initMachines() {
+  for (let machine = 0; machine < 3; machine++) {
+    const container = document.getElementById(`reels${machine + 1}`);
+    const reels = container.querySelectorAll('.reel');
+    reels.forEach(reel => {
+      const track = reel.querySelector('.reel-track');
+      createSymbols(track);
+    });
+  }
+}
+
+function createSymbols(track) {
+  track.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const symbolDiv = document.createElement('div');
+    symbolDiv.className = 'symbol';
+    const pos = i % 3;
+    if (pos === 0) symbolDiv.classList.add('top');
+    else if (pos === 1) symbolDiv.classList.add('middle');
+    else symbolDiv.classList.add('bottom');
+    symbolDiv.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    track.appendChild(symbolDiv);
+  }
+}
+
+function pullHandle(machineIndex) {
+  const container = document.getElementById(`reels${machineIndex + 1}`);
+  const reels = container.querySelectorAll('.reel');
+  reels.forEach((reel, index) => {
+    reel.classList.remove('stopped');
+    setTimeout(() => {
+      reel.classList.add('stopped');
+      const track = reel.querySelector('.reel-track');
+      createSymbols(track);
+      const offset = -(Math.floor(Math.random() * 4) * 60);
+      track.style.transform = `translateY(${offset}px)`;
+    }, 1000 + (index * 300));
+  });
+  checkWin(machineIndex);
+}
+
+function spinAll() {
+  for (let i = 0; i < 3; i++) setTimeout(() => pullHandle(i), i * 500);
+}
+
+function autoSpin() {
+  if (autoSpinning) {
+    autoSpinning = false;
+    clearInterval(autoSpinInterval);
+    document.getElementById('status').innerHTML = '🛑 AUTO SPIN STOPPED!';
+  } else {
+    autoSpinning = true;
+    document.getElementById('status').innerHTML = '🔄 AUTO SPINNING! 🌊🌊';
+    autoSpinInterval = setInterval(() => {
+      pullHandle(Math.floor(Math.random() * 3));
+    }, 2000);
+  }
+}
+
+function checkWin(machineIndex) {
+  const isJackpot = checkJackpot(machineIndex);
+  if (!isJackpot) {
+    setTimeout(() => {
+      const messages = [
+        '🧀 CHEESE KING! 🧀', '🎃 PUMPKING WINS! 👑', '💰 BIG WIN! 🌊🌊',
+        '⚡ LIGHTNING STRIKE! ⚡', '🤡 CLOWN BONUS! :@D', '💚 HEART WINNER! 💚',
+        '🔥 ON FIRE! 🔥', '✨ SPARKLE WIN! ✨', '🎪 CIRCUS PRIZE! 🎪',
+        '🎭 DRAMA QUEEN! 🎭', '🥩 STEAK DINNER! 🥩'
+      ];
+      document.getElementById('status').innerHTML = messages[Math.floor(Math.random() * messages.length)];
+    }, 2000);
+  }
+}
+
+// Init
+initMachines();
+
+setInterval(() => {
+  document.querySelectorAll('.reel:not(.stopped) .reel-track').forEach(track => {
+    if (!track.parentElement.classList.contains('stopped') && Math.random() < 0.1) {
+      createSymbols(track);
+    }
+  });
+}, 2000);
+</script>
+
 </body>
 </html>
