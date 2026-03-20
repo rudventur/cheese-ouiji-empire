@@ -25,7 +25,10 @@ body {
   margin-bottom: 10px;
   text-shadow: 0 0 20px #ffeb3b;
   animation: titleGlow 2s ease-in-out infinite;
+  cursor: pointer;
+  user-select: none;
 }
+.title:hover { transform: scale(1.03); transition: transform 0.2s; }
 
 .subtitle {
   font-size: 1.2rem;
@@ -484,6 +487,78 @@ body {
 }
 .jackpot-winner a:hover { color: #ff00ff; }
 
+/* === REEL FILTER BUTTONS === */
+.reel-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.reel-filter-btn {
+  padding: 5px 12px; font-size: 0.75rem; font-family: 'Courier New', monospace; font-weight: bold;
+  border: 1px solid #00ffff; background: rgba(0, 255, 255, 0.1); color: #00ffff;
+  cursor: pointer; border-radius: 5px; transition: all 0.3s; text-shadow: 0 0 4px currentColor;
+}
+.reel-filter-btn:hover { background: rgba(0, 255, 255, 0.3); box-shadow: 0 0 12px rgba(0, 255, 255, 0.5); }
+.reel-filter-btn.active { border-color: #ffeb3b; background: rgba(255, 235, 59, 0.25); color: #ffeb3b; box-shadow: 0 0 10px rgba(255, 235, 59, 0.4); }
+
+/* === FOOD BANK DETAIL MODAL === */
+.fb-detail-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  background: rgba(0, 0, 0, 0.92);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.fb-detail-overlay.open { display: flex; }
+.fb-detail-modal {
+  background: #0a0a0a;
+  border: 3px solid #ff00ff;
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(255, 0, 255, 0.6), 0 0 80px rgba(0, 255, 255, 0.3);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #ff00ff #000;
+}
+.fb-detail-close {
+  position: absolute; top: 10px; right: 15px;
+  font-size: 2rem; color: #ff4444; cursor: pointer; background: none; border: none;
+  font-family: 'Courier New', monospace; text-shadow: 0 0 10px #ff4444;
+}
+.fb-detail-close:hover { color: #ff0000; transform: scale(1.2); }
+.fb-detail-emoji { font-size: 4rem; text-align: center; margin-bottom: 10px; }
+.fb-detail-name {
+  font-size: 1.6rem; font-weight: bold; color: #ffeb3b; text-align: center;
+  text-shadow: 0 0 15px #ffeb3b; margin-bottom: 15px; word-break: break-word;
+}
+.fb-detail-row {
+  padding: 8px 0; border-bottom: 1px solid rgba(0, 255, 65, 0.15);
+  font-size: 0.9rem; color: #00ffff;
+}
+.fb-detail-row strong { color: #ff00ff; }
+.fb-detail-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; justify-content: center;
+}
+.fb-detail-actions .btn-sm { font-size: 0.85rem; padding: 8px 16px; }
+.fb-detail-filters {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 15px; padding-top: 15px;
+  border-top: 1px solid rgba(255, 0, 255, 0.3);
+}
+.fb-detail-image-container {
+  margin-top: 15px; text-align: center; min-height: 30px;
+}
+.fb-detail-image-container img {
+  max-width: 100%; max-height: 300px; border-radius: 8px;
+  border: 2px solid #00ff41; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+}
+.fb-detail-image-loading {
+  color: #ff00ff; animation: loadPulse 1s infinite; font-size: 0.9rem;
+}
+
 /* === RESPONSIVE === */
 @media (max-width: 768px) {
   .machine-container { flex-direction: column; }
@@ -524,6 +599,11 @@ body {
         <button class="btn-sm" onclick="selectRandomFBs(10)">🎲 RANDOM 10</button>
         <button class="btn-sm" onclick="clearBanditSelection()">🗑️ CLEAR</button>
       </div>
+    </div>
+    <div class="reel-filters">
+      <button class="reel-filter-btn" id="filterOpenNow" onclick="toggleReelFilter('openNow')">🕐 OPENED NOW</button>
+      <button class="reel-filter-btn" id="filterClosest" onclick="toggleReelFilter('closest')">📍 CLOSEST TO ME</button>
+      <button class="reel-filter-btn" id="filterNoReferral" onclick="toggleReelFilter('noReferral')">🚫 NO REFERRAL NEEDED</button>
     </div>
     <div class="selected-fb-chips" id="selectedChips">
       <div class="no-selection-msg">No food banks selected - go to 🥩 FOOD BANKS tab and add some to the reels!</div>
@@ -633,6 +713,14 @@ body {
   </div>
 </div>
 
+<!-- FOOD BANK DETAIL MODAL -->
+<div class="fb-detail-overlay" id="fbDetailOverlay" onclick="if(event.target===this)closeFBDetail()">
+  <div class="fb-detail-modal" id="fbDetailModal">
+    <button class="fb-detail-close" onclick="closeFBDetail()">✕</button>
+    <div id="fbDetailContent"></div>
+  </div>
+</div>
+
 <!-- JACKPOT OVERLAY -->
 <div id="jackpot">
   <div class="jackpot-text">🌊🌊 JACKPOT!!! 🧀🤡🎰 🌊🌊</div>
@@ -713,14 +801,14 @@ function renderFoodBanks(banks) {
     const location = [fb.borough, fb.city].filter(Boolean).join(', ') || 'Unknown';
     const donateUrl = fb.donations_url || fb.url || '';
     return `
-    <div class="foodbank-card">
+    <div class="foodbank-card" onclick="openFBDetail('${fb.id}')" style="cursor:pointer;">
       <div class="fb-name"><span class="fb-emoji-badge">${fb.emoji}</span> ${escapeHtml(fb.name || 'Unknown')}</div>
       <div class="fb-country">📍 ${escapeHtml(location)}</div>
       ${fb.address ? `<div class="fb-country" style="color:#aaa;font-size:0.75rem;">🏠 ${escapeHtml(fb.address)}${fb.postcode ? ', ' + escapeHtml(fb.postcode) : ''}</div>` : ''}
       ${fb.opening_hours ? `<div class="fb-country" style="color:#88ff88;font-size:0.75rem;">🕐 ${escapeHtml(fb.opening_hours)}</div>` : ''}
-      ${donateUrl ? `<div class="fb-link"><a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener">🔗 DONATE HERE</a></div>` : ''}
+      ${donateUrl ? `<div class="fb-link"><a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🔗 DONATE HERE</a></div>` : ''}
       <div class="fb-bandit-toggle">
-        <button class="fb-toggle-btn ${isSelected ? 'selected' : ''}" onclick="toggleBanditFB('${fb.id}')">
+        <button class="fb-toggle-btn ${isSelected ? 'selected' : ''}" onclick="event.stopPropagation();toggleBanditFB('${fb.id}')">
           ${isSelected ? '🎰 ON REELS' : '➕ ADD TO REELS'}
         </button>
         <span style="font-size:0.75rem; color:#888;">${fb.emoji} on bandits</span>
@@ -870,6 +958,263 @@ async function submitFoodBank() {
     msg.textContent = '⚠️ Error submitting. Check console.';
   }
 }
+
+// ============ FULLSCREEN TOGGLE ON TITLE ============
+document.querySelector('.title').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+});
+
+// ============ REEL FILTERS ============
+let reelFilters = { openNow: false, closest: false, noReferral: false };
+let userLocation = null;
+
+function toggleReelFilter(filterName) {
+  reelFilters[filterName] = !reelFilters[filterName];
+  const btnMap = { openNow: 'filterOpenNow', closest: 'filterClosest', noReferral: 'filterNoReferral' };
+  document.getElementById(btnMap[filterName]).classList.toggle('active', reelFilters[filterName]);
+
+  if (filterName === 'closest' && reelFilters.closest && !userLocation) {
+    document.getElementById(btnMap[filterName]).textContent = '📍 LOCATING...';
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        document.getElementById(btnMap[filterName]).textContent = '📍 CLOSEST TO ME';
+        applyReelFilters();
+      },
+      () => {
+        reelFilters.closest = false;
+        document.getElementById(btnMap[filterName]).classList.remove('active');
+        document.getElementById(btnMap[filterName]).textContent = '📍 GPS DENIED';
+        setTimeout(() => {
+          document.getElementById(btnMap[filterName]).textContent = '📍 CLOSEST TO ME';
+        }, 2000);
+      }
+    );
+    return;
+  }
+  applyReelFilters();
+}
+
+function isOpenNow(hoursStr) {
+  if (!hoursStr) return false;
+  const now = new Date();
+  const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const today = days[now.getDay()];
+  const h = hoursStr.toLowerCase();
+  // Check for common patterns
+  if (h.includes('24 hour') || h.includes('24/7') || h.includes('always')) return true;
+  // Try to find today's hours
+  const todayIdx = h.indexOf(today);
+  if (todayIdx === -1) {
+    // Check abbreviated
+    const abbr = today.substring(0, 3);
+    if (!h.includes(abbr)) return false;
+  }
+  // Simple time range check - look for patterns like "9:00-17:00" or "9am-5pm"
+  const timeRanges = h.match(/(\d{1,2})[:.:]?(\d{2})?\s*(am|pm)?\s*[-–to]+\s*(\d{1,2})[:.:]?(\d{2})?\s*(am|pm)?/gi);
+  if (!timeRanges) return false;
+  const currentHour = now.getHours();
+  const currentMin = now.getMinutes();
+  for (const range of timeRanges) {
+    const m = range.match(/(\d{1,2})[:.:]?(\d{2})?\s*(am|pm)?\s*[-–to]+\s*(\d{1,2})[:.:]?(\d{2})?\s*(am|pm)?/i);
+    if (!m) continue;
+    let startH = parseInt(m[1]);
+    const startAP = (m[3] || '').toLowerCase();
+    let endH = parseInt(m[4]);
+    const endAP = (m[6] || '').toLowerCase();
+    if (startAP === 'pm' && startH !== 12) startH += 12;
+    if (startAP === 'am' && startH === 12) startH = 0;
+    if (endAP === 'pm' && endH !== 12) endH += 12;
+    if (endAP === 'am' && endH === 12) endH = 0;
+    if (!startAP && !endAP && endH < startH) endH += 12;
+    const nowMins = currentHour * 60 + currentMin;
+    const startMins = startH * 60 + parseInt(m[2] || 0);
+    const endMins = endH * 60 + parseInt(m[5] || 0);
+    if (nowMins >= startMins && nowMins <= endMins) return true;
+  }
+  return false;
+}
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function applyReelFilters() {
+  let filtered = [...allFoodBanks];
+
+  if (reelFilters.openNow) {
+    filtered = filtered.filter(fb => isOpenNow(fb.opening_hours));
+  }
+  if (reelFilters.noReferral) {
+    filtered = filtered.filter(fb => {
+      const txt = ((fb.name || '') + ' ' + (fb.notes || '') + ' ' + (fb.referral || '')).toLowerCase();
+      return !txt.includes('referral required') && !txt.includes('referral only') && !txt.includes('by referral');
+    });
+  }
+  if (reelFilters.closest && userLocation) {
+    filtered = filtered.filter(fb => fb.latitude && fb.longitude);
+    filtered.sort((a, b) => {
+      const dA = haversineDistance(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+      const dB = haversineDistance(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+      return dA - dB;
+    });
+    filtered = filtered.slice(0, 20); // top 20 closest
+  }
+
+  // Select all filtered food banks for the reels
+  selectedForBandits.clear();
+  filtered.forEach(fb => {
+    selectedForBandits.set(fb.id, { emoji: fb.emoji, name: fb.name, url: fb.donations_url || fb.url });
+  });
+  updateBanditSymbols();
+  updateChipsDisplay();
+  renderFoodBanks(allFoodBanks);
+}
+
+// ============ FOOD BANK DETAIL MODAL ============
+let detailFilters = { openNow: false, noReferral: false };
+
+function openFBDetail(fbId) {
+  const fb = allFoodBanks.find(f => f.id === fbId);
+  if (!fb) return;
+  const overlay = document.getElementById('fbDetailOverlay');
+  const content = document.getElementById('fbDetailContent');
+  const location = [fb.borough, fb.city].filter(Boolean).join(', ') || 'Unknown';
+  const donateUrl = fb.donations_url || fb.url || '';
+  const isSelected = selectedForBandits.has(fb.id);
+  const openStatus = isOpenNow(fb.opening_hours);
+
+  content.innerHTML = `
+    <div class="fb-detail-emoji">${fb.emoji}</div>
+    <div class="fb-detail-name">${escapeHtml(fb.name || 'Unknown')}</div>
+    <div class="fb-detail-row"><strong>📍 Location:</strong> ${escapeHtml(location)}</div>
+    ${fb.address ? `<div class="fb-detail-row"><strong>🏠 Address:</strong> ${escapeHtml(fb.address)}${fb.postcode ? ', ' + escapeHtml(fb.postcode) : ''}</div>` : ''}
+    ${fb.opening_hours ? `<div class="fb-detail-row"><strong>🕐 Hours:</strong> ${escapeHtml(fb.opening_hours)} ${openStatus ? '<span style="color:#00ff41;">● OPEN NOW</span>' : '<span style="color:#ff4444;">● CLOSED</span>'}</div>` : ''}
+    ${fb.phone ? `<div class="fb-detail-row"><strong>📞 Phone:</strong> ${escapeHtml(fb.phone)}</div>` : ''}
+    ${fb.email ? `<div class="fb-detail-row"><strong>📧 Email:</strong> ${escapeHtml(fb.email)}</div>` : ''}
+    ${fb.referral ? `<div class="fb-detail-row"><strong>📋 Referral:</strong> ${escapeHtml(fb.referral)}</div>` : ''}
+    ${fb.notes ? `<div class="fb-detail-row"><strong>📝 Notes:</strong> ${escapeHtml(fb.notes)}</div>` : ''}
+    ${userLocation && fb.latitude && fb.longitude ? `<div class="fb-detail-row"><strong>📏 Distance:</strong> ${haversineDistance(userLocation.lat, userLocation.lng, fb.latitude, fb.longitude).toFixed(1)} km away</div>` : ''}
+
+    <div class="fb-detail-actions">
+      ${donateUrl ? `<a href="${escapeHtml(donateUrl)}" target="_blank" rel="noopener" class="btn-sm" style="text-decoration:none;color:#ff00ff;border-color:#ff00ff;">🔗 DONATE</a>` : ''}
+      <button class="btn-sm fb-toggle-btn ${isSelected ? 'selected' : ''}" onclick="toggleBanditFB('${fb.id}');openFBDetail('${fb.id}');">
+        ${isSelected ? '🎰 ON REELS' : '➕ ADD TO REELS'}
+      </button>
+      <button class="btn-sm" onclick="fetchFBImage('${fb.id}')" style="border-color:#00ffff;color:#00ffff;">📸 FETCH PICTURE</button>
+    </div>
+
+    <div class="fb-detail-image-container" id="fbDetailImage-${fb.id}"></div>
+
+    <div class="fb-detail-filters">
+      <span style="color:#888;font-size:0.75rem;width:100%;margin-bottom:4px;">Quick filters from here:</span>
+      <button class="reel-filter-btn" onclick="filterFromDetail('openNow')">🕐 SHOW OPEN NOW</button>
+      <button class="reel-filter-btn" onclick="filterFromDetail('closest')">📍 SHOW CLOSEST</button>
+      <button class="reel-filter-btn" onclick="filterFromDetail('noReferral')">🚫 NO REFERRAL</button>
+    </div>
+  `;
+  overlay.classList.add('open');
+}
+
+function closeFBDetail() {
+  document.getElementById('fbDetailOverlay').classList.remove('open');
+}
+
+function filterFromDetail(filterName) {
+  closeFBDetail();
+  showTab('foodbanks');
+  // Activate the corresponding tab button
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  // Apply filter to the main food bank view
+  if (filterName === 'openNow') {
+    const filtered = allFoodBanks.filter(fb => isOpenNow(fb.opening_hours));
+    renderFoodBanks(filtered);
+    document.getElementById('fbStats').textContent = `🕐 Showing ${filtered.length} OPEN NOW food banks`;
+  } else if (filterName === 'noReferral') {
+    const filtered = allFoodBanks.filter(fb => {
+      const txt = ((fb.name || '') + ' ' + (fb.notes || '') + ' ' + (fb.referral || '')).toLowerCase();
+      return !txt.includes('referral required') && !txt.includes('referral only') && !txt.includes('by referral');
+    });
+    renderFoodBanks(filtered);
+    document.getElementById('fbStats').textContent = `🚫 Showing ${filtered.length} NO REFERRAL food banks`;
+  } else if (filterName === 'closest') {
+    if (!userLocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        filterFromDetail('closest');
+      }, () => alert('GPS access denied!'));
+      return;
+    }
+    let filtered = allFoodBanks.filter(fb => fb.latitude && fb.longitude);
+    filtered.sort((a, b) => {
+      const dA = haversineDistance(userLocation.lat, userLocation.lng, a.latitude, a.longitude);
+      const dB = haversineDistance(userLocation.lat, userLocation.lng, b.latitude, b.longitude);
+      return dA - dB;
+    });
+    renderFoodBanks(filtered);
+    document.getElementById('fbStats').textContent = `📍 Showing ${filtered.length} food banks sorted by distance`;
+  }
+}
+
+// ============ FETCH PICTURE FROM ONLINE ============
+async function fetchFBImage(fbId) {
+  const fb = allFoodBanks.find(f => f.id === fbId);
+  if (!fb) return;
+  const container = document.getElementById('fbDetailImage-' + fbId);
+  if (!container) return;
+  container.innerHTML = '<div class="fb-detail-image-loading">📸 Fetching image...</div>';
+
+  const query = encodeURIComponent((fb.name || 'food bank') + ' ' + (fb.city || ''));
+  try {
+    // Use Wikimedia Commons API for free images
+    const resp = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${query}&srnamespace=6&srlimit=1&format=json&origin=*`);
+    const data = await resp.json();
+    if (data.query && data.query.search && data.query.search.length > 0) {
+      const title = data.query.search[0].title;
+      const infoResp = await fetch(`https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=imageinfo&iiprop=url|thumbmime&iiurlwidth=500&format=json&origin=*`);
+      const infoData = await infoResp.json();
+      const pages = infoData.query.pages;
+      const page = Object.values(pages)[0];
+      if (page.imageinfo && page.imageinfo[0]) {
+        const thumbUrl = page.imageinfo[0].thumburl || page.imageinfo[0].url;
+        container.innerHTML = `<img src="${thumbUrl}" alt="${escapeHtml(fb.name)}" onerror="this.parentElement.innerHTML='<span style=\\'color:#ff4444;\\'>Could not load image</span>'">
+          <div style="font-size:0.65rem;color:#888;margin-top:5px;">Source: Wikimedia Commons</div>`;
+        return;
+      }
+    }
+    // Fallback: try Wikipedia page image
+    const wikiResp = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${query}&srlimit=1&format=json&origin=*`);
+    const wikiData = await wikiResp.json();
+    if (wikiData.query && wikiData.query.search && wikiData.query.search.length > 0) {
+      const pageTitle = wikiData.query.search[0].title;
+      const imgResp = await fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&pithumbsize=500&format=json&origin=*`);
+      const imgData = await imgResp.json();
+      const pages = imgData.query.pages;
+      const page = Object.values(pages)[0];
+      if (page.thumbnail && page.thumbnail.source) {
+        container.innerHTML = `<img src="${page.thumbnail.source}" alt="${escapeHtml(fb.name)}" onerror="this.parentElement.innerHTML='<span style=\\'color:#ff4444;\\'>Could not load image</span>'">
+          <div style="font-size:0.65rem;color:#888;margin-top:5px;">Source: Wikipedia</div>`;
+        return;
+      }
+    }
+    container.innerHTML = '<span style="color:#ffeb3b;">No image found for this food bank</span>';
+  } catch (err) {
+    console.error('Image fetch error:', err);
+    container.innerHTML = '<span style="color:#ff4444;">Error fetching image</span>';
+  }
+}
+
+// Close detail modal with Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeFBDetail(); });
 
 // Load food banks on init
 loadFoodBanks();
