@@ -576,7 +576,7 @@ body {
 </head>
 <body>
 
-<div class="title">
+<div class="title" data-rv-logo>
   <span class="flicker-face"></span> CHEESE BANDIT999 <span class="flicker-face"></span>
 </div>
 <div class="subtitle">🥩 FOOD BANK EMPIRE - ON STEAK 🥩</div>
@@ -961,7 +961,8 @@ async function submitFoodBank() {
 }
 
 // ============ FULLSCREEN TOGGLE ON TITLE ============
-document.querySelector('.title').addEventListener('click', () => {
+// the logo now opens the shared RUDVENTUR view menu (rvView.js); plain toggle is the fallback
+if (!window.rvView) document.querySelector('.title').addEventListener('click', () => {
   if (!document.fullscreenElement) {
     document.documentElement.requestFullscreen().catch(() => {});
   } else {
