@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🧀 CHEESE BANDIT999 - FOOD BANK EMPIRE 🥩</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -179,7 +179,7 @@ body {
   background: rgba(0, 0, 0, 0.85);
 }
 .jackpot-text {
-  font-size: 6rem; font-weight: bold;
+  font-size: clamp(2rem, 10vw, 6rem); text-align: center; padding: 0 12px; font-weight: bold;
   text-shadow: 0 0 40px #ff00ff, 0 0 80px #00ffff, 0 0 120px #ffeb3b;
   animation: jackpotPulse 1.2s infinite alternate; margin-bottom: 40px; z-index: 10;
 }
@@ -507,7 +507,7 @@ body {
   position: fixed; inset: 0; z-index: 9998;
   background: rgba(0, 0, 0, 0.92);
   display: none; align-items: center; justify-content: center;
-  padding: 20px;
+  padding: calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
 }
 .fb-detail-overlay.open { display: flex; }
 .fb-detail-modal {
@@ -575,21 +575,45 @@ body {
   color: #00ffff; font-size: 1.1rem; opacity: 0.6; transition: all 0.3s; font-family: inherit;
 }
 .machine-gear:hover { opacity: 1; transform: rotate(90deg); text-shadow: 0 0 10px #00ffff; }
-.bandit-machine.off { display: none; }
+.machine-slide { display: flex; justify-content: center; align-items: center; }
+.machine-slide.off { display: none; }
+.reels-container { cursor: pointer; }
 .bandit-machine.spinning .handle-ball { color: #555; animation: none; }
-.machine-container { zoom: var(--mscale, 1); }
+.bandit-machine { zoom: var(--fit, 1); }
 body.calm *:not(.reel-track):not(.particle),
 body.calm *::before { animation: none !important; }
 
 /* === DOCK + OPTION WINDOWS === */
-body { padding-bottom: calc(var(--dock-h, 60px) + 30px); }
+/* Page padding = base + notch (safe area) + room for the dock on whichever edge it sits.
+   --dock-t/r/b/l are set from JS to the space the dock needs on that edge (0 elsewhere). */
+:root { --pad: 20px; }
+body {
+  padding-top: calc(var(--pad) + env(safe-area-inset-top) + var(--dock-t, 0px));
+  padding-right: calc(var(--pad) + env(safe-area-inset-right) + var(--dock-r, 0px));
+  padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom) + var(--dock-b, 70px));
+  padding-left: calc(var(--pad) + env(safe-area-inset-left) + var(--dock-l, 0px));
+}
 .dock {
-  position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 9000;
-  display: flex; gap: 6px; padding: 6px; flex-wrap: wrap; justify-content: center;
-  max-width: calc(100vw - 24px);
+  position: fixed; z-index: 9000;
+  display: flex; gap: 6px; padding: 6px; justify-content: center;
   background: rgba(0, 0, 0, 0.88); border: 2px solid #ff00ff; border-radius: 12px;
   box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+  left: 50%; bottom: calc(10px + env(safe-area-inset-bottom)); transform: translateX(-50%);
 }
+body.dock-bottom .dock, body.dock-top .dock {
+  flex-direction: row; flex-wrap: wrap; width: max-content;
+  max-width: calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right));
+}
+body.dock-top .dock { bottom: auto; top: calc(10px + env(safe-area-inset-top)); }
+body.dock-left .dock, body.dock-right .dock {
+  flex-direction: column; bottom: auto; top: 50%; transform: translateY(-50%);
+  max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow-y: auto;
+}
+/* left dock leaves room for the RUDVENTUR edge tab (rv-fab) */
+body.dock-left .dock { left: calc(40px + env(safe-area-inset-left)); }
+body.dock-right .dock { left: auto; right: calc(10px + env(safe-area-inset-right)); }
+.dock-grip { cursor: grab; touch-action: none; color: #ff00ff; border-color: #ff00ff; }
+.dock.dragging { transition: none; opacity: 0.85; transform: none !important; cursor: grabbing; }
 .dock-btn {
   padding: 7px 12px; font-size: 0.8rem; font-family: 'Courier New', monospace; font-weight: bold;
   border: 1px solid #00ff41; background: rgba(0, 255, 65, 0.12); color: #00ff41;
@@ -659,12 +683,49 @@ kbd {
 .spin-log .log-time { color: #666; margin-right: 6px; }
 .spin-log .log-win { color: #00ff41; }
 
-/* === RESPONSIVE === */
-@media (max-width: 700px) {
-  .win { left: 8px !important; right: 8px; top: auto !important; bottom: calc(var(--dock-h, 60px) + 20px); width: auto; max-height: 60vh; }
-  .dock-btn { padding: 6px 8px; font-size: 0.72rem; }
-  .win-head { cursor: default; }
+/* === REEL PANEL COLLAPSE === */
+.bandit-filter-header h3 { cursor: pointer; user-select: none; }
+.collapse-arrow { display: inline-block; transition: transform 0.2s; }
+.bandit-filter.collapsed .collapse-arrow { transform: rotate(-90deg); }
+.bandit-filter.collapsed .reel-filters,
+.bandit-filter.collapsed .selected-fb-chips { display: none; }
+.bandit-filter.collapsed .bandit-filter-header { margin-bottom: 0; }
+
+/* === CAROUSEL LAYOUT (phones): one machine per screen, swipe between them === */
+.machine-dots { display: none; }
+body.layout-carousel .machine-container {
+  flex-wrap: nowrap; flex-direction: row; gap: 0; justify-content: flex-start;
+  overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none;
+  overscroll-behavior-x: contain;
 }
+body.layout-carousel .machine-container::-webkit-scrollbar { display: none; }
+body.layout-carousel .machine-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: center; scroll-snap-stop: always; }
+body.layout-carousel .machine-dots { display: flex; justify-content: center; gap: 10px; margin: 6px 0 2px; }
+.machine-dot {
+  width: 12px; height: 12px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 2px solid #00ffff; background: transparent; box-shadow: 0 0 6px #00ffff;
+}
+.machine-dot.on { background: #ffeb3b; border-color: #ffeb3b; box-shadow: 0 0 10px #ffeb3b; }
+/* handle sits beside the reels so the cabinet is short enough for a phone */
+body.layout-carousel .bandit-machine { padding-right: 48px; }
+body.layout-carousel .handle-container {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%); margin: 0;
+}
+body.layout-carousel .reels-container { margin: 10px 0; }
+
+/* The bandits tab becomes a one-screen dashboard: menu on top, machines fill the rest */
+body.layout-fit #tab-bandits.active {
+  display: flex; flex-direction: column;
+  height: calc(100dvh - var(--tab-top, 0px) - var(--dock-b, 0px) - var(--pad) - env(safe-area-inset-bottom));
+  min-height: 200px;
+}
+body.layout-fit #tab-bandits .bandit-filter { order: 1; flex: none; }
+body.layout-fit #tab-bandits .status { order: 2; flex: none; }
+body.layout-fit #tab-bandits .credit-bar { order: 3; flex: none; }
+body.layout-fit #tab-bandits .machine-container { order: 4; flex: 1 1 0; min-height: 0; align-items: center; }
+body.layout-fit #tab-bandits .machine-dots { order: 5; flex: none; }
+body.layout-fit #tab-bandits .controls { order: 6; flex: none; }
+
 @media (max-width: 768px) {
   .machine-container { flex-direction: column; }
   .title { font-size: 2rem; }
@@ -673,8 +734,65 @@ kbd {
   .symbol { height: 46px; font-size: 1.8rem; }
   .symbol.middle { font-size: 2.2rem; }
   .foodbank-grid { grid-template-columns: 1fr; }
-  .jackpot-text { font-size: 3rem; }
+  .jackpot-text { font-size: clamp(1.8rem, 9vw, 3rem); }
   .jackpot-winner { font-size: 1rem; }
+}
+
+/* === PHONES (after the 768px block so these win) === */
+@media (max-width: 700px), (max-height: 500px) {
+  :root { --pad: 8px; }
+  .controls .btn-options { display: none; }
+  .title { font-size: clamp(0.95rem, 5vw, 1.6rem); margin-bottom: 2px; white-space: nowrap; max-width: 100%; }
+  .subtitle { font-size: 0.72rem; margin-bottom: 8px; }
+  .nav-tabs { gap: 6px; margin-bottom: 8px; flex-wrap: nowrap; }
+  .nav-tab { padding: 7px 10px; font-size: 0.75rem; }
+  .bandit-filter { padding: 8px 10px; margin-bottom: 6px; }
+  .bandit-filter-header { margin-bottom: 6px; gap: 6px; }
+  .bandit-filter-header h3 { font-size: 0.85rem; }
+  .bandit-filter-count { font-size: 0.72rem; }
+  .btn-sm { padding: 5px 9px; font-size: 0.7rem; }
+  .reel-filters, .selected-fb-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-bottom: 6px; }
+  .reel-filter-btn, .fb-chip { flex: none; }
+  .no-selection-msg { white-space: normal; font-size: 0.72rem; padding: 2px; }
+  .status { font-size: 1rem; margin-top: 4px; min-height: 0; }
+  .credit-bar { margin-top: 4px; font-size: 0.8rem; gap: 8px; }
+  .controls { margin-top: 6px; gap: 6px; flex-wrap: nowrap; }
+  .controls { width: 100%; }
+  .controls .btn { flex: 1 1 0; min-width: 0; padding: 10px 4px; font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .controls .btn:hover { transform: none; }
+  .dock { padding: 4px; gap: 4px; flex-wrap: nowrap; }
+  .dock-btn { padding: 7px 9px; font-size: 1rem; }
+  .dock-label { display: none; }
+}
+@media (max-height: 500px) {
+  .subtitle { display: none; }
+  .title { font-size: 1.1rem; }
+}
+/* Landscape phone: menu column on the left, machine on the right */
+@media (max-height: 500px) and (orientation: landscape) {
+  body.layout-fit #tab-bandits.active {
+    display: grid; column-gap: 12px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-template-rows: minmax(0, 1fr) auto auto auto auto;
+  }
+  body.layout-fit #tab-bandits .bandit-filter { grid-column: 1; grid-row: 1; margin-bottom: 4px; min-height: 0; overflow-y: auto; align-self: start; max-height: 100%; }
+  body.layout-fit #tab-bandits .status { grid-column: 1; grid-row: 2; }
+  body.layout-fit #tab-bandits .credit-bar { grid-column: 1; grid-row: 3; }
+  body.layout-fit #tab-bandits .controls { grid-column: 1; grid-row: 4; align-self: end; }
+  body.layout-fit #tab-bandits .machine-container { grid-column: 2; grid-row: 1 / 5; min-height: 0; height: 100%; }
+  body.layout-fit #tab-bandits.active { overflow: hidden; }
+  body.layout-fit #tab-bandits .machine-dots { grid-column: 2; grid-row: 5; }
+}
+/* Phones: windows become sheets that stay clear of the notch and the dock */
+@media (max-width: 700px), (max-height: 500px) {
+  .win {
+    top: auto !important; width: auto; max-width: none;
+    left: calc(8px + env(safe-area-inset-left) + var(--dock-l, 0px)) !important;
+    right: calc(8px + env(safe-area-inset-right) + var(--dock-r, 0px));
+    bottom: calc(8px + env(safe-area-inset-bottom) + var(--dock-b, 0px));
+    max-height: min(60vh, calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--dock-b, 0px) - var(--dock-t, 0px)));
+  }
+  .win-head { cursor: default; }
 }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -704,7 +822,7 @@ kbd {
   <!-- FOOD BANK FILTER FOR BANDITS -->
   <div class="bandit-filter">
     <div class="bandit-filter-header">
-      <h3>🎰 FOOD BANKS ON THE REELS</h3>
+      <h3 onclick="toggleReelPanel()" title="Show / hide">🎰 FOOD BANKS ON THE REELS <span class="collapse-arrow">▾</span></h3>
       <span class="bandit-filter-count" id="reelCount">0 food banks selected</span>
       <div class="bandit-filter-actions">
         <button class="btn-sm" onclick="selectRandomFBs(5)">🎲 RANDOM 5</button>
@@ -723,66 +841,74 @@ kbd {
   </div>
 
   <div class="machine-container">
-    <!-- BANDIT MACHINE 1 -->
-    <div class="bandit-machine" data-machine="0">
-      <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
-      <div class="ascii-frame frame-top">╔═══════════════════╗
+    <div class="machine-slide">
+      <!-- BANDIT MACHINE 1 -->
+      <div class="bandit-machine" data-machine="0">
+        <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
+        <div class="ascii-frame frame-top">╔═══════════════════╗
 ║ <span class="colon-animation"></span> <span class="mname" data-m="0">BANDIT</span> <span class="flicker-face"></span> 999 ║
 ╠═══════════════════╣</div>
-      <div class="reels-container" id="reels1">
-        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
-      </div>
-      <div class="ascii-frame frame-bot">╠═══════════════════╣
+        <div class="reels-container" id="reels1" onclick="pullHandle(0)">
+          <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="2"><div class="reel-track"></div></div>
+        </div>
+        <div class="ascii-frame frame-bot">╠═══════════════════╣
 ║ <span class="flicker-face"></span> <span class="colon-animation"></span> CHEESE <span class="colon-animation"></span> <span class="flicker-face"></span> ║
 ╚═══════════════════╝</div>
-      <div class="handle-container" onclick="pullHandle(0)">
-        <div class="handle-ball">●</div>
-        <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        <div class="handle-container" onclick="pullHandle(0)">
+          <div class="handle-ball">●</div>
+          <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        </div>
       </div>
     </div>
 
-    <!-- BANDIT MACHINE 2 -->
-    <div class="bandit-machine" data-machine="1">
-      <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
-      <div class="ascii-frame frame-mid">╔═══════════════════╗
+    <div class="machine-slide">
+      <!-- BANDIT MACHINE 2 -->
+      <div class="bandit-machine" data-machine="1">
+        <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
+        <div class="ascii-frame frame-mid">╔═══════════════════╗
 ║ <span class="flicker-face"></span> <span class="mname" data-m="1">KING</span> <span class="colon-animation"></span> SLOTS ║
 ╠═══════════════════╣</div>
-      <div class="reels-container" id="reels2">
-        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
-      </div>
-      <div class="ascii-frame frame-top">╠═══════════════════╣
+        <div class="reels-container" id="reels2" onclick="pullHandle(1)">
+          <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="2"><div class="reel-track"></div></div>
+        </div>
+        <div class="ascii-frame frame-top">╠═══════════════════╣
 ║ <span class="colon-animation"></span> <span class="flicker-face"></span> SPLASH <span class="flicker-face"></span> <span class="colon-animation"></span> ║
 ╚═══════════════════╝</div>
-      <div class="handle-container" onclick="pullHandle(1)">
-        <div class="handle-ball">●</div>
-        <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        <div class="handle-container" onclick="pullHandle(1)">
+          <div class="handle-ball">●</div>
+          <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        </div>
       </div>
     </div>
 
-    <!-- BANDIT MACHINE 3 -->
-    <div class="bandit-machine" data-machine="2">
-      <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
-      <div class="ascii-frame frame-bot">╔═══════════════════╗
+    <div class="machine-slide">
+      <!-- BANDIT MACHINE 3 -->
+      <div class="bandit-machine" data-machine="2">
+        <button class="machine-gear" onclick="openWin('inputs')" title="Machine options">⚙</button>
+        <div class="ascii-frame frame-bot">╔═══════════════════╗
 ║ <span class="colon-animation"></span> <span class="flicker-face"></span> <span class="mname" data-m="2">EMPIRE</span> <span class="flicker-face"></span> ║
 ╠═══════════════════╣</div>
-      <div class="reels-container" id="reels3">
-        <div class="reel" data-reel="0"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="1"><div class="reel-track"></div></div>
-        <div class="reel" data-reel="2"><div class="reel-track"></div></div>
-      </div>
-      <div class="ascii-frame frame-mid">╠═══════════════════╣
+        <div class="reels-container" id="reels3" onclick="pullHandle(2)">
+          <div class="reel" data-reel="0"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="1"><div class="reel-track"></div></div>
+          <div class="reel" data-reel="2"><div class="reel-track"></div></div>
+        </div>
+        <div class="ascii-frame frame-mid">╠═══════════════════╣
 ║ <span class="flicker-face"></span> <span class="colon-animation"></span> OUIJI <span class="colon-animation"></span> <span class="flicker-face"></span> ║
 ╚═══════════════════╝</div>
-      <div class="handle-container" onclick="pullHandle(2)">
-        <div class="handle-ball">●</div>
-        <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        <div class="handle-container" onclick="pullHandle(2)">
+          <div class="handle-ball">●</div>
+          <div class="handle-shaft">║<br>║<br>╱║╲</div>
+        </div>
       </div>
     </div>
   </div>
+
+  <div class="machine-dots" id="machineDots"></div>
 
   <div class="status" id="status">🌊🌊 PULL THE HANDLE! 🌊🌊</div>
 
@@ -799,7 +925,7 @@ kbd {
   <div class="controls">
     <button class="btn" onclick="spinAll()">🎰 SPIN ALL THREE!</button>
     <button class="btn" id="autoBtn" onclick="autoSpin()">⚡ AUTO SPIN</button>
-    <button class="btn" onclick="toggleWin('options')">⚙️ OPTIONS</button>
+    <button class="btn btn-options" onclick="toggleWin('options')">⚙️ OPTIONS</button>
   </div>
 </div>
 
@@ -854,10 +980,11 @@ kbd {
 
 <!-- ========== OPTION WINDOWS ========== -->
 <div class="dock" id="dock">
-  <button class="dock-btn" data-win="options" onclick="toggleWin('options')">⚙️ OPTIONS</button>
-  <button class="dock-btn" data-win="inputs" onclick="toggleWin('inputs')">🎛️ INPUTS</button>
-  <button class="dock-btn" data-win="rules" onclick="toggleWin('rules')">📜 RULES</button>
-  <button class="dock-btn" data-win="stats" onclick="toggleWin('stats')">📊 STATS</button>
+  <button class="dock-btn dock-grip" id="dockGrip" title="Drag to any screen edge (tap to move it round)">⠿</button>
+  <button class="dock-btn" data-win="options" onclick="toggleWin('options')">⚙️<span class="dock-label"> OPTIONS</span></button>
+  <button class="dock-btn" data-win="inputs" onclick="toggleWin('inputs')">🎛️<span class="dock-label"> INPUTS</span></button>
+  <button class="dock-btn" data-win="rules" onclick="toggleWin('rules')">📜<span class="dock-label"> RULES</span></button>
+  <button class="dock-btn" data-win="stats" onclick="toggleWin('stats')">📊<span class="dock-label"> STATS</span></button>
   <button class="dock-btn" id="dockSound" onclick="toggleSound()" title="Sound on/off">🔇</button>
 </div>
 
@@ -948,8 +1075,14 @@ const firebaseConfig = {
   measurementId: "G-XVN47RSNSC"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// If the Firebase CDN is blocked/offline the slots still work, just without food banks
+let db = null;
+try {
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+} catch (err) {
+  console.error('Firebase unavailable:', err);
+}
 
 // ============ EMOJI POOL FOR FOOD BANKS ============
 const fbEmojiPool = [
@@ -966,34 +1099,57 @@ const fbEmojiPool = [
 let allFoodBanks = [];
 let selectedForBandits = new Map(); // id -> { emoji, name, url }
 
-// Assign a deterministic-ish random emoji to each food bank based on its index
-function assignEmoji(index) {
-  return fbEmojiPool[index % fbEmojiPool.length];
+// Each food bank keeps the same emoji forever (hash of its id), even as the live list changes
+function assignEmoji(id) {
+  let h = 0;
+  for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return fbEmojiPool[h % fbEmojiPool.length];
 }
 
-async function loadFoodBanks() {
-  try {
-    const snapshot = await db.collection('foodbanks').orderBy('name').get();
+const SELECTION_KEY = 'bandit999.selected';
+let foodBanksLoaded = false;
+
+// Live: Firestore pushes every add/edit/delete straight onto the reels and the list
+function loadFoodBanks() {
+  if (!db) {
+    document.getElementById('foodbankGrid').innerHTML =
+      '<div class="loading-text">⚠️ Food banks are offline right now - the slots still spin! 🎰</div>';
+    document.getElementById('fbStats').textContent = '🔴 OFFLINE';
+    return;
+  }
+  db.collection('foodbanks').orderBy('name').onSnapshot(snapshot => {
     allFoodBanks = [];
-    let idx = 0;
     snapshot.forEach(doc => {
       const data = doc.data();
-      allFoodBanks.push({
-        id: doc.id,
-        ...data,
-        emoji: assignEmoji(idx)
-      });
-      idx++;
+      if (data.status === 'pending') return; // submissions wait for review
+      allFoodBanks.push({ id: doc.id, ...data, emoji: assignEmoji(doc.id) });
     });
-    renderFoodBanks(allFoodBanks);
-    document.getElementById('fbStats').textContent =
-      `🥩 ${allFoodBanks.length} FOOD BANKS ON STEAK 🥩`;
-  } catch (err) {
+    syncSelection();
+    foodBanksLoaded = true;
+    filterFoodBanks();
+  }, err => {
     console.error('Firebase load error:', err);
     document.getElementById('foodbankGrid').innerHTML =
       '<div class="loading-text">⚠️ Could not load food banks. Check Firebase config.</div>';
     document.getElementById('fbStats').textContent = 'Connection error - check console';
+  });
+}
+
+// First load: restore the food banks picked last visit. Later loads: refresh picked
+// entries with live data and drop any that were deleted.
+function syncSelection() {
+  const byId = new Map(allFoodBanks.map(fb => [fb.id, fb]));
+  let ids = [...selectedForBandits.keys()];
+  if (!foodBanksLoaded) {
+    try { ids = JSON.parse(localStorage.getItem(SELECTION_KEY)) || []; } catch (e) { ids = []; }
   }
+  selectedForBandits.clear();
+  ids.forEach(id => {
+    const fb = byId.get(id);
+    if (fb) selectedForBandits.set(id, { emoji: fb.emoji, name: fb.name, url: fb.donations_url || fb.url });
+  });
+  updateBanditSymbols();
+  updateChipsDisplay();
 }
 
 function renderFoodBanks(banks) {
@@ -1038,8 +1194,9 @@ function filterFoodBanks() {
     (fb.borough || '').toLowerCase().includes(q)
   );
   renderFoodBanks(filtered);
-  document.getElementById('fbStats').textContent =
-    `🥩 Showing ${filtered.length} of ${allFoodBanks.length} food banks 🥩`;
+  document.getElementById('fbStats').textContent = q
+    ? `🟢 LIVE · Showing ${filtered.length} of ${allFoodBanks.length} food banks 🥩`
+    : `🟢 LIVE · ${allFoodBanks.length} FOOD BANKS ON STEAK 🥩`;
 }
 
 // ============ BANDIT SELECTION LOGIC ============
@@ -1090,6 +1247,7 @@ function removeFBFromBandits(fbId) {
 }
 
 function updateChipsDisplay() {
+  try { localStorage.setItem(SELECTION_KEY, JSON.stringify([...selectedForBandits.keys()])); } catch (e) {}
   const container = document.getElementById('selectedChips');
   const countEl = document.getElementById('reelCount');
 
@@ -1165,6 +1323,11 @@ async function submitFoodBank() {
   const url = document.getElementById('fbUrlInput').value.trim();
   const msg = document.getElementById('submitMsg');
 
+  if (!db) {
+    msg.style.color = '#ff0000';
+    msg.textContent = '⚠️ Offline - cannot submit right now.';
+    return;
+  }
   if (!name || !country) {
     msg.style.color = '#ff0000';
     msg.textContent = '⚠️ Name and Country are required!';
@@ -1460,6 +1623,7 @@ function showTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   if (btn) btn.classList.add('active');
+  if (tab === 'bandits') fitMachines();
 }
 
 // ============ SETTINGS (saved in this browser) ============
@@ -1468,7 +1632,8 @@ const DEFAULTS = {
   spinDuration: 1000, reelStagger: 300, autoInterval: 2000, autoMode: 'random', blockWhileSpinning: true,
   particles: 200, jackpotDuration: 12, luck: 0, stopAutoOnJackpot: false,
   sound: false, volume: 0.5,
-  hue: 0, machineScale: 1, calm: false, showReelPanel: true, shortcuts: true,
+  hue: 0, machineScale: 1, calm: false, showReelPanel: true, reelPanelCollapsed: false, shortcuts: true, dockPos: 'auto',
+  layout: 'auto', autoFit: true,
   // 🎛️ inputs
   symbolSource: 'auto', customSymbols: '',
   name0: 'BANDIT', name1: 'KING', name2: 'EMPIRE', on0: true, on1: true, on2: true,
@@ -1526,9 +1691,12 @@ const OPTION_SCHEMA = {
     ]],
     ['🎨 LOOK', [
       { k: 'hue', l: 'Neon colour shift', t: 'range', min: 0, max: 360, step: 5, u: '°' },
+      { k: 'layout', l: 'Machine layout', t: 'select', o: [['auto', '📱 auto (swipe on phones)'], ['row', '🎰 all side by side'], ['carousel', '👆 one at a time, swipe']] },
+      { k: 'autoFit', l: 'Fit machines to the screen', t: 'check', h: 'Swipe layout only: shrinks or grows the machine so the whole dashboard fits without scrolling.' },
       { k: 'machineScale', l: 'Machine size', t: 'range', min: 0.5, max: 1.5, step: 0.05, fmt: v => '×' + Number(v).toFixed(2) },
       { k: 'calm', l: 'Calm mode (less flashing)', t: 'check' },
       { k: 'showReelPanel', l: 'Show food bank reel panel', t: 'check' },
+      { k: 'dockPos', l: 'Button dock sits', t: 'select', o: [['auto', '📱 auto (side in landscape)'], ['bottom', '⬇️ bottom'], ['top', '⬆️ top'], ['left', '⬅️ left'], ['right', '➡️ right']], h: 'Or drag the ⠿ grip to any edge.' },
       { k: 'shortcuts', l: 'Keyboard shortcuts', t: 'check' }
     ]]
   ],
@@ -1672,7 +1840,7 @@ function importSettings() {
 function applySettings(changed) {
   document.body.classList.toggle('calm', S.calm);
   const machines = document.querySelector('.machine-container');
-  machines.style.setProperty('--mscale', S.machineScale);
+  document.querySelector('.bandit-filter').classList.toggle('collapsed', S.reelPanelCollapsed);
   const hue = S.hue ? `hue-rotate(${S.hue}deg)` : '';
   [machines, document.querySelector('.title'), document.querySelector('.subtitle')].forEach(el => { el.style.filter = hue; });
   document.querySelector('.bandit-filter').style.display = S.showReelPanel ? '' : 'none';
@@ -1680,7 +1848,7 @@ function applySettings(changed) {
   for (let m = 0; m < 3; m++) {
     const name = (S['name' + m] || '').trim() || DEFAULTS['name' + m];
     document.querySelectorAll(`.mname[data-m="${m}"]`).forEach(el => { el.textContent = name; });
-    document.querySelector(`.bandit-machine[data-machine="${m}"]`).classList.toggle('off', !S['on' + m]);
+    document.querySelector(`.bandit-machine[data-machine="${m}"]`).closest('.machine-slide').classList.toggle('off', !S['on' + m]);
   }
 
   if (!changed || changed === 'symbolSource' || changed === 'customSymbols') updateBanditSymbols();
@@ -1693,6 +1861,68 @@ function applySettings(changed) {
   renderPaytable();
   renderCredits();
   updateDock();
+  renderDots();
+  syncDock();
+}
+
+// ============ PHONE LAYOUT: carousel + fit-to-screen ============
+const isSmallScreen = () => window.matchMedia('(max-width: 700px), (max-height: 500px)').matches;
+
+function fitMachines() {
+  const root = document.documentElement;
+  const tab = document.getElementById('tab-bandits');
+  const carousel = S.layout === 'carousel' || (S.layout === 'auto' && isSmallScreen());
+  const fit = carousel && S.autoFit;
+  document.body.classList.toggle('layout-carousel', carousel);
+  document.body.classList.toggle('layout-fit', fit);
+  root.style.setProperty('--fit', S.machineScale);
+  if (!fit || !tab.classList.contains('active')) return;
+
+  // Pin the tab to the space left under the top menu, then scale a machine into what remains
+  const box = document.querySelector('.machine-container');
+  const current = box.clientWidth ? Math.round(box.scrollLeft / box.clientWidth) : 0;
+  root.style.setProperty('--tab-top', tab.getBoundingClientRect().top + window.scrollY + 'px');
+  root.style.setProperty('--fit', 1);
+  const shown = [...document.querySelectorAll('.machine-slide:not(.off) .bandit-machine')];
+  if (!shown.length) return;
+  const w = Math.max(...shown.map(m => m.offsetWidth));
+  const h = Math.max(...shown.map(m => m.offsetHeight));
+  const scale = Math.min((box.clientWidth - 12) / w, (box.clientHeight - 8) / h);
+  root.style.setProperty('--fit', (Math.max(0.35, Math.min(1.6, scale)) * S.machineScale).toFixed(3));
+  box.scrollLeft = current * box.clientWidth; // stay on the same machine after a resize/rotate
+  syncDots();
+}
+
+function visibleSlides() {
+  return [...document.querySelectorAll('.machine-slide')].filter(sl => !sl.classList.contains('off'));
+}
+
+function renderDots() {
+  const dots = document.getElementById('machineDots');
+  dots.innerHTML = visibleSlides().map((sl, i) => {
+    const m = sl.querySelector('.bandit-machine').dataset.machine;
+    return `<button class="machine-dot" data-i="${i}" title="${escAttr(machineName(Number(m)))}" onclick="scrollToMachine(${m})"></button>`;
+  }).join('');
+  syncDots();
+}
+
+function syncDots() {
+  const box = document.querySelector('.machine-container');
+  const i = box.clientWidth ? Math.round(box.scrollLeft / box.clientWidth) : 0;
+  document.querySelectorAll('.machine-dot').forEach(d => d.classList.toggle('on', Number(d.dataset.i) === i));
+}
+
+function scrollToMachine(m) {
+  if (!document.body.classList.contains('layout-carousel')) return;
+  const box = document.querySelector('.machine-container');
+  const i = visibleSlides().findIndex(sl => sl.querySelector(`[data-machine="${m}"]`));
+  if (i >= 0) box.scrollTo({ left: i * box.clientWidth, behavior: 'smooth' });
+}
+
+function toggleReelPanel() {
+  S.reelPanelCollapsed = !S.reelPanelCollapsed;
+  saveSettings();
+  applySettings('reelPanelCollapsed');
 }
 
 // ============ FLOATING WINDOWS ============
@@ -1710,10 +1940,14 @@ function placeWin(id) {
   // First open: options/rules on the left, inputs/stats on the right, slightly cascaded
   const x = st.x != null ? st.x : (i % 2 ? window.innerWidth - w.offsetWidth - 16 - i * 12 : 16 + i * 12);
   const y = st.y != null ? st.y : 70 + i * 36;
-  const maxX = Math.max(0, window.innerWidth - w.offsetWidth);
-  const maxY = Math.max(0, window.innerHeight - 40);
-  w.style.left = Math.min(maxX, Math.max(0, x)) + 'px';
-  w.style.top = Math.min(maxY, Math.max(0, y)) + 'px';
+  // keep clear of the dock's edge so it never hides a window's title bar
+  const rs = getComputedStyle(document.documentElement);
+  const room = k => parseFloat(rs.getPropertyValue('--dock-' + k)) || 0;
+  const minX = room('l'), minY = room('t');
+  const maxX = Math.max(minX, window.innerWidth - w.offsetWidth - room('r'));
+  const maxY = Math.max(minY, window.innerHeight - 40 - room('b'));
+  w.style.left = Math.min(maxX, Math.max(minX, x)) + 'px';
+  w.style.top = Math.min(maxY, Math.max(minY, y)) + 'px';
 }
 
 function focusWin(id) {
@@ -1758,6 +1992,70 @@ function closeTopWin() {
   if (top) closeWin(top);
 }
 
+// ============ DOCK: any edge, clear of notches, content makes room for it ============
+const DOCK_SIDES = ['top', 'right', 'bottom', 'left'];
+
+function dockSide() {
+  if (S.dockPos !== 'auto') return S.dockPos;
+  return window.matchMedia('(max-height: 500px) and (orientation: landscape)').matches ? 'right' : 'bottom';
+}
+
+function syncDock() {
+  const dock = document.getElementById('dock');
+  const side = dockSide();
+  DOCK_SIDES.forEach(sd => document.body.classList.toggle('dock-' + sd, sd === side));
+  const size = side === 'top' || side === 'bottom' ? dock.offsetHeight : dock.offsetWidth;
+  // edge gap (10px, or 40px on the left for the RUDVENTUR tab) + dock + 6px breathing room
+  const room = size + (side === 'left' ? 46 : 16);
+  DOCK_SIDES.forEach(sd => document.documentElement.style.setProperty('--dock-' + sd[0], (sd === side ? room : 0) + 'px'));
+  fitMachines();
+}
+
+function setDockPos(pos) {
+  S.dockPos = pos;
+  saveSettings();
+  const sel = document.getElementById('opt-dockPos');
+  if (sel) sel.value = pos;
+  syncDock();
+  WINS.forEach(id => { if (winEl(id).classList.contains('open')) placeWin(id); });
+}
+
+// Drag the grip and drop near an edge; a plain tap moves the dock round to the next edge
+function initDockDrag() {
+  const dock = document.getElementById('dock');
+  const grip = document.getElementById('dockGrip');
+  grip.addEventListener('pointerdown', e => {
+    const sx = e.clientX, sy = e.clientY;
+    let moved = false;
+    grip.setPointerCapture(e.pointerId);
+    const move = ev => {
+      if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 8) return;
+      moved = true;
+      dock.classList.add('dragging');
+      dock.style.left = Math.max(0, ev.clientX - 20) + 'px';
+      dock.style.top = Math.max(0, ev.clientY - 20) + 'px';
+      dock.style.right = dock.style.bottom = 'auto';
+    };
+    const up = ev => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', up);
+      grip.removeEventListener('pointercancel', up);
+      dock.classList.remove('dragging');
+      dock.style.left = dock.style.top = dock.style.right = dock.style.bottom = '';
+      if (moved) {
+        const d = { left: ev.clientX, right: window.innerWidth - ev.clientX, top: ev.clientY, bottom: window.innerHeight - ev.clientY };
+        setDockPos(Object.keys(d).reduce((a, b) => d[a] <= d[b] ? a : b));
+      } else {
+        const order = ['bottom', 'right', 'top', 'left'];
+        setDockPos(order[(order.indexOf(dockSide()) + 1) % order.length]);
+      }
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', up);
+    grip.addEventListener('pointercancel', up);
+  });
+}
+
 function updateDock() {
   document.querySelectorAll('.dock-btn[data-win]').forEach(btn => {
     btn.classList.toggle('on', winEl(btn.dataset.win).classList.contains('open'));
@@ -1771,7 +2069,7 @@ function initWindows() {
     const head = w.querySelector('.win-head');
     w.addEventListener('pointerdown', () => focusWin(id));
     head.addEventListener('pointerdown', e => {
-      if (e.target.closest('button') || window.innerWidth <= 700) return;
+      if (e.target.closest('button') || isSmallScreen()) return;
       const startX = e.clientX - w.offsetLeft;
       const startY = e.clientY - w.offsetTop;
       head.setPointerCapture(e.pointerId);
@@ -1794,11 +2092,10 @@ function initWindows() {
     }
   });
   window.addEventListener('resize', () => WINS.forEach(id => { if (winEl(id).classList.contains('open')) placeWin(id); }));
-  // Keep windows and page content clear of the dock, however many rows it wraps to
   const dock = document.getElementById('dock');
-  const syncDock = () => document.documentElement.style.setProperty('--dock-h', dock.offsetHeight + 'px');
-  syncDock();
   if (window.ResizeObserver) new ResizeObserver(syncDock).observe(dock);
+  window.addEventListener('resize', syncDock);
+  initDockDrag();
 }
 
 // ============ RULES + STATS RENDERING ============
@@ -2086,6 +2383,7 @@ function resolveSpin(machineIndex, result) {
   if (triple) {
     const fb = getFBByEmoji(a);
     sfx.jackpot();
+    scrollToMachine(machineIndex);
     if (S.stopAutoOnJackpot && autoSpinning) autoSpin();
     setTimeout(() => {
       triggerJackpot(a);
@@ -2139,7 +2437,7 @@ document.addEventListener('keydown', e => {
     if (tag === 'BUTTON') return;
     e.preventDefault();
     spinAll();
-  } else if (k === '1' || k === '2' || k === '3') pullHandle(Number(k) - 1);
+  } else if (k === '1' || k === '2' || k === '3') { scrollToMachine(Number(k) - 1); pullHandle(Number(k) - 1); }
   else if (k === 'a') autoSpin();
   else if (wins[k]) toggleWin(wins[k]);
 });
@@ -2149,6 +2447,12 @@ Object.keys(OPTION_SCHEMA).forEach(renderOptions);
 applySettings();
 setStatus(escapeHtml(S.idleText));
 initWindows();
+document.querySelector('.machine-container').addEventListener('scroll', syncDots, { passive: true });
+window.addEventListener('resize', fitMachines);
+window.addEventListener('orientationchange', () => setTimeout(fitMachines, 200));
+document.addEventListener('fullscreenchange', () => setTimeout(fitMachines, 100));
+if (window.ResizeObserver) new ResizeObserver(() => fitMachines()).observe(document.querySelector('.bandit-filter'));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitMachines);
 
 setInterval(() => {
   document.querySelectorAll('.reel:not(.stopped) .reel-track').forEach(track => {
