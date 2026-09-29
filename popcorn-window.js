@@ -24,21 +24,41 @@
    Config (set before the script loads, all optional):
      window.rvPopcornConfig = {
        onPopcorn: function () {},  // inner 🍿 action (default: close the window)
+       onKeyboard: function () {}, // ⌨️ action (default: type text onto the picture)
+       onChat: function () {},     // 💬 action (default: open chatUrl)
+       onUser: function () {},     // tap on the name in the user box (default: rename)
        chatUrl: '...',             // 💬 global chat address
        background: true,           // camera behind the page when already allowed
-       bgOpacity: 0.28,
+       bgVideo: '#id',             // reuse the page's own background <video>
+       bgOpacity: 0.28,            // null = leave the video's own styling alone
+       mirrorBg: true,             // mirror the selfie cam behind the page
+       zIndex: 2147483000,         // stacking of the popcorn window
+       bottomOffset: 0,            // lift the bottom buttons (e.g. above a taskbar)
+       userOffset: 0,              // keep the user box clear of a top-right widget
        button: true                // add a floating 🍿 when the page has none
      };
 
+   Events: document gets 'rvpopcorn:camera' with detail { on, stream } whenever
+   the camera starts or stops.
+
    API (window.rvPopcorn):
      rvPopcorn.open(), rvPopcorn.close(), rvPopcorn.toggle(),
-     rvPopcorn.startCamera(), rvPopcorn.stopCamera(), rvPopcorn.config
+     rvPopcorn.startCamera(), rvPopcorn.stopCamera(), rvPopcorn.config,
+     rvPopcorn.useStream(stream) — adopt a camera stream the page opened itself
 */
 (function () {
   if (window.rvPopcorn) return;
 
   var CFG = Object.assign({
     onPopcorn: null,
+    onKeyboard: null,
+    onChat: null,
+    onUser: null,
+    bgVideo: null,
+    mirrorBg: true,
+    zIndex: 2147483000,
+    bottomOffset: 0,
+    userOffset: 0,
     chatUrl: 'https://rudventur.github.io/global-chat-v5/',
     background: true,
     bgOpacity: 0.28,
@@ -87,7 +107,7 @@
     '[data-rv-popcorn].rvp-recording::after{content:"";position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;' +
     'background:#ff2a2a;box-shadow:0 0 6px #ff2a2a;animation:rvpBlink 1.2s infinite}' +
     '@keyframes rvpBlink{50%{opacity:.25}}' +
-    '.rvp{position:fixed;inset:0;z-index:2147483000;background:#000;display:none;overflow:hidden;' +
+    '.rvp{position:fixed;inset:0;z-index:var(--rvp-z,2147483000);background:#000;display:none;overflow:hidden;' +
     "font-family:'Courier New',ui-monospace,monospace;color:#00ff41;user-select:none;-webkit-user-select:none}" +
     '.rvp.open{display:block}' +
     '.rvp-cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}' +
@@ -103,8 +123,8 @@
     '.rvp-top button{border-color:#ff00ff;color:#ff66ff;font-size:12px;padding:6px 7px}' +
     '.rvp-rec{font-size:12px;padding:0 6px;white-space:nowrap;color:#aaa}' +
     '.rvp-rec.live{color:#ff4d4d}.rvp-rec.live b{animation:rvpBlink 1.2s infinite}' +
-    '.rvp-user{top:calc(8px + env(safe-area-inset-top));right:calc(8px + env(safe-area-inset-right));padding:5px;' +
-    'border:1px solid #00ffff;border-radius:10px;background:rgba(0,0,0,.55);max-width:230px;justify-content:flex-end}' +
+    '.rvp-user{top:calc(8px + env(safe-area-inset-top));right:calc(8px + var(--rvp-uo,0px) + env(safe-area-inset-right));padding:5px;' +
+    'border:1px solid #00ffff;border-radius:10px;background:rgba(0,0,0,.55);max-width:300px;justify-content:flex-end}' +
     '.rvp-user button{border-color:#00ffff;color:#00ffff}' +
     '.rvp-me{display:flex;align-items:center;gap:6px;cursor:pointer;padding:0 4px;color:#00ffff;font-size:13px;max-width:120px}' +
     '.rvp-me i{font-style:normal;width:26px;height:26px;border-radius:50%;background:#00ffff;color:#000;display:flex;' +
@@ -113,12 +133,12 @@
     '.rvp-tools{left:calc(38px + env(safe-area-inset-left));top:50%;transform:translateY(-50%);flex-direction:column;' +
     'padding:5px;border:1px solid #00ff41;border-radius:10px;background:rgba(0,0,0,.55)}' +
     '.rvp-swatch{width:36px;height:36px;border-radius:50%!important}' +
-    '.rvp-bl{left:calc(10px + env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom))}' +
+    '.rvp-bl{left:calc(10px + env(safe-area-inset-left));bottom:calc(10px + var(--rvp-bo,0px) + env(safe-area-inset-bottom))}' +
     '.rvp-bl button{font-size:22px;padding:8px 10px}' +
-    '.rvp-br{right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + env(safe-area-inset-bottom))}' +
+    '.rvp-br{right:calc(10px + env(safe-area-inset-right));bottom:calc(10px + var(--rvp-bo,0px) + env(safe-area-inset-bottom))}' +
     '.rvp-br button{width:66px;height:66px;border-radius:50%;font-size:34px;border:2px solid #ffeb3b;' +
     'box-shadow:0 0 16px rgba(255,235,59,.55);padding:0}' +
-    '.rvp-type{left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;' +
+    '.rvp-type{left:50%;bottom:calc(14px + var(--rvp-bo,0px) + env(safe-area-inset-bottom));transform:translateX(-50%);display:none;' +
     'width:min(460px,calc(100% - 200px));flex-wrap:nowrap}' +
     '.rvp-type.open{display:flex}' +
     '.rvp-type input{flex:1;min-width:0;font:inherit;font-size:16px;color:#00ff41;background:rgba(0,0,0,.85);' +
@@ -144,10 +164,10 @@
     'pointer-events:none;opacity:0;transition:opacity .3s;white-space:nowrap}' +
     '.rvp-toast.show{opacity:1}' +
     '@media (max-width:640px){' +
-    '.rvp-user{max-width:calc(100% - 16px);flex-wrap:nowrap}.rvp-me span{display:none}' +
+    '.rvp-user{max-width:calc(100% - 16px - var(--rvp-uo,0px));flex-wrap:nowrap}.rvp-me span{display:none}' +
     '.rvp-top{top:calc(62px + env(safe-area-inset-top));max-width:calc(100% - 16px)}' +
     '.rvp-rbar{top:calc(62px + env(safe-area-inset-top))}' +
-    '.rvp-type{width:calc(100% - 20px);bottom:calc(90px + env(safe-area-inset-bottom))}' +
+    '.rvp-type{width:calc(100% - 20px);bottom:calc(90px + var(--rvp-bo,0px) + env(safe-area-inset-bottom))}' +
     '.rvp-toast{top:calc(150px + env(safe-area-inset-top))}}';
 
   // ---------------------------------------------------------------- state
@@ -159,6 +179,13 @@
   var root, cam, draw, drawCtx, ui = {};
   var built = false, isOpen = false;
 
+  function userName() {
+    try {
+      var u = JSON.parse(lsGet('rud_useRbox_v2') || 'null');
+      if (u && u.username) return u.username;
+    } catch (e) {}
+    return lsGet(K_NAME) || 'guest';
+  }
   function camAllowed() { return lsGet(K_ALLOWED) === '1'; }
   function bgWanted() { return CFG.background && lsGet(K_BG) !== '0'; }
 
@@ -172,6 +199,8 @@
   }
   function ensureBgVideo() {
     if (bgV) return bgV;
+    var own = CFG.bgVideo && document.querySelector(CFG.bgVideo);
+    if (own) { bgV = own; bgV.muted = true; bgV.playsInline = true; return bgV; }
     bgV = el('video', 'rvp-bg');
     bgV.muted = true; bgV.playsInline = true; bgV.autoplay = true;
     bgV.setAttribute('playsinline', ''); bgV.setAttribute('muted', '');
@@ -180,8 +209,9 @@
   }
   function syncBg() {
     if (!bgV) return;
-    bgV.style.opacity = stream && bgWanted() ? String(CFG.bgOpacity) : '0';
-    bgV.classList.toggle('mirror', facing === 'user');
+    var on = stream && bgWanted();
+    bgV.style.opacity = on ? (CFG.bgOpacity == null ? '' : String(CFG.bgOpacity)) : '0';
+    if (CFG.mirrorBg) bgV.classList.toggle('mirror', facing === 'user');
   }
 
   function startCamera() {
@@ -195,25 +225,38 @@
       audio: false
     }).then(function (s) {
       starting = null;
-      stream = s;
-      lsSet(K_ALLOWED, '1');
-      var v = ensureBgVideo();
-      v.srcObject = s;
-      var p = v.play(); if (p && p.catch) p.catch(function () {});
-      if (cam) { cam.srcObject = s; var q = cam.play(); if (q && q.catch) q.catch(function () {}); }
-      s.getVideoTracks().forEach(function (t) {
-        t.addEventListener('ended', function () { if (stream === s) stopCamera(true); });
-      });
-      syncBg();
-      startMix();
-      startRecording();
-      refresh();
-      return s;
+      return useStream(s);
     }, function (err) {
       starting = null;
       throw err;
     });
     return starting;
+  }
+
+  // take over a camera stream (ours, or one the page opened with its own picker)
+  function useStream(s) {
+    var had = !!stream;
+    if (stream && stream !== s) stream.getTracks().forEach(function (t) { t.stop(); });
+    stream = s;
+    lsSet(K_ALLOWED, '1');
+    var v = ensureBgVideo();
+    if (v.srcObject !== s) v.srcObject = s;
+    var p = v.play(); if (p && p.catch) p.catch(function () {});
+    if (cam) { cam.srcObject = s; var q = cam.play(); if (q && q.catch) q.catch(function () {}); }
+    s.getVideoTracks().forEach(function (t) {
+      t.addEventListener('ended', function () { if (stream === s) stopCamera(true); });
+    });
+    syncBg();
+    startMix();
+    if (!had) startRecording();   // a swapped camera keeps the running recorders
+    refresh();
+    emit(true);
+    return s;
+  }
+  function emit(on) {
+    try {
+      document.dispatchEvent(new CustomEvent('rvpopcorn:camera', { detail: { on: on, stream: stream } }));
+    } catch (e) {}
   }
 
   // keepAllowed: the camera died by itself (unplugged, revoked) — don't forget the yes
@@ -227,6 +270,7 @@
     if (keepAllowed !== true) lsSet(K_ALLOWED, '0');
     syncBg();
     refresh();
+    emit(false);
   }
 
   function flipCamera() {
@@ -239,13 +283,8 @@
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
     }).then(function (s) {
-      stream = s;
-      bgV.srcObject = s; bgV.play().catch(function () {});
-      if (cam) { cam.srcObject = s; cam.play().catch(function () {}); }
-      s.getVideoTracks().forEach(function (t) {
-        t.addEventListener('ended', function () { if (stream === s) stopCamera(true); });
-      });
-      syncBg(); refresh();
+      stream = old;   // so useStream sees a swap and keeps the recorders
+      useStream(s);
     }, function () {
       toast('Could not switch camera');
       stopCamera(true);
@@ -577,6 +616,9 @@
     built = true;
     attachStyles();
     root = el('div', 'rvp');
+    root.style.setProperty('--rvp-z', String(CFG.zIndex));
+    root.style.setProperty('--rvp-bo', (CFG.bottomOffset || 0) + 'px');
+    root.style.setProperty('--rvp-uo', (CFG.userOffset || 0) + 'px');
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-label', 'Popcorn window');
 
@@ -608,9 +650,10 @@
     // top right — user box
     var user = el('div', 'rvp-bar rvp-user');
     ui.me = el('div', 'rvp-me', '<i></i><span></span>');
-    ui.me.title = 'Tap to change your name';
+    ui.me.title = typeof CFG.onUser === 'function' ? 'Your profile' : 'Tap to change your name';
     ui.me.addEventListener('click', function (e) {
       e.stopPropagation();
+      if (typeof CFG.onUser === 'function') { CFG.onUser(); return; }
       var n = prompt('Your name', lsGet(K_NAME) || '');
       if (n != null) { lsSet(K_NAME, n.trim().slice(0, 24)); refresh(); }
     });
@@ -646,7 +689,8 @@
 
     // bottom left — keyboard + global chat
     var bl = el('div', 'rvp-bar rvp-bl');
-    button(bl, '⌨️', 'Type a description onto the picture', openType);
+    button(bl, '⌨️', typeof CFG.onKeyboard === 'function' ? 'Keyboards' : 'Type a description onto the picture',
+      function () { if (typeof CFG.onKeyboard === 'function') CFG.onKeyboard(); else openType(); });
     button(bl, '💬', 'Global chat', openChat);
     root.appendChild(bl);
 
@@ -733,6 +777,7 @@
   function askCamera() { ui.clips.classList.remove('open'); ui.ask.classList.add('open'); }
 
   function openChat() {
+    if (typeof CFG.onChat === 'function') { CFG.onChat(); return; }
     if (window.rvView && window.rvView.openLayer) window.rvView.openLayer(CFG.chatUrl);
     else window.open(CFG.chatUrl, '_blank', 'noopener');
   }
@@ -760,7 +805,7 @@
   function refresh() {
     refreshRec();
     if (!built) return;
-    var name = lsGet(K_NAME) || 'guest';
+    var name = userName();
     $('i', ui.me).textContent = name.charAt(0).toUpperCase();
     $('span', ui.me).textContent = name;
     ui.camBtn.classList.toggle('on', !!stream);
@@ -797,6 +842,7 @@
     build();
     isOpen = true;
     root.classList.add('open');
+    document.documentElement.classList.add('rvp-open');
     document.documentElement.style.overflow = 'hidden';
     sizeDraw();
     if (stream) { cam.srcObject = stream; cam.play().catch(function () {}); }
@@ -809,6 +855,7 @@
     closeReplay(); closeType();
     ui.ask.classList.remove('open'); ui.clips.classList.remove('open');
     root.classList.remove('open');
+    document.documentElement.classList.remove('rvp-open');
     cam.pause();
     document.documentElement.style.overflow = '';
   }
@@ -857,7 +904,8 @@
 
   window.rvPopcorn = {
     open: open, close: close, toggle: toggle,
-    startCamera: startCamera, stopCamera: stopCamera,
+    startCamera: startCamera, stopCamera: stopCamera, useStream: useStream,
+    isOpen: function () { return isOpen; },
     config: CFG
   };
 })();
