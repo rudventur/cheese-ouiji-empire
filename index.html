@@ -803,6 +803,7 @@ body.layout-fit #tab-bandits .controls { order: 6; flex: none; }
 <link rel="apple-touch-icon" href="/RudVentur.com/embed/apple-touch-icon.png">
 <script src="https://rudventur.github.io/RudVentur.com/embed/rvView.js"></script>
 <script src="popcorn-window.js"></script>
+<script src="popcorn-movie.js"></script>
 </head>
 <body>
 
@@ -987,7 +988,7 @@ body.layout-fit #tab-bandits .controls { order: 6; flex: none; }
   <button class="dock-btn" data-win="rules" onclick="toggleWin('rules')">📜<span class="dock-label"> RULES</span></button>
   <button class="dock-btn" data-win="stats" onclick="toggleWin('stats')">📊<span class="dock-label"> STATS</span></button>
   <button class="dock-btn" id="dockSound" onclick="toggleSound()" title="Sound on/off">🔇</button>
-  <button class="dock-btn" data-rv-popcorn title="Popcorn window — camera, drawing, replay">🍿<span class="dock-label"> POPCORN</span></button>
+  <button class="dock-btn" data-rv-popcorn title="Popcorn window — sealed camera, mic, movie maker">🍿<span class="dock-label"> POPCORN</span></button>
 </div>
 
 <div class="win" id="win-options" style="--wc:#00ff41">
@@ -2432,6 +2433,7 @@ function autoSpin() {
 // ============ KEYBOARD SHORTCUTS ============
 document.addEventListener('keydown', e => {
   if (!S.shortcuts || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (document.documentElement.classList.contains('rvp-open')) return; // the popcorn window has its own keys
   const tag = e.target.tagName || '';
   if (/INPUT|TEXTAREA|SELECT/.test(tag) || e.target.isContentEditable) return;
   const k = e.key.toLowerCase();
