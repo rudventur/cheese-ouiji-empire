@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧀 Cheese Casino — Left Roulette / Right Poker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#000;
+  color:#00ff41;
+  font-family:'Courier New',monospace;
+  min-height:100vh;
+  padding:20px;
+}
+.header{text-align:center;margin-bottom:30px}
+.header h1{font-size:2rem;color:#ffeb3b;text-shadow:0 0 10px #ffeb3b}
+.header a{color:#00ffff;text-decoration:none;font-size:.9rem}
+.panels{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  max-width:1100px;
+  margin:0 auto;
+}
+.panel{
+  border:2px solid #00ff41;
+  background:rgba(0,20,0,.8);
+  padding:20px;
+  border-radius:8px;
+}
+.panel h2{color:#ffeb3b;margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:8px}
+.left{border-color:#ff9933}
+.right{border-color:#00e5ff}
+.card{
+  border:1px solid #333;
+  padding:10px;
+  margin:8px 0;
+  background:#0a0a0a;
+  color:#aaa;
+  font-size:.9rem;
+}
+.card::before{content:"[?] ";color:#666}
+@media(max-width:700px){.panels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧀 CHEESE CASINO PANELS</h1>
+  <div style="margin:8px 0;color:#00ffff">Left = Roulette &nbsp;|&nbsp; Right = Poker</div>
+  <a href="index.html">← back to Bandit999</a>
+</div>
+
+<div class="panels">
+  <div class="panel left">
+    <h2>LEFT — ROULETTE</h2>
+    <p>Wheel · Felt · Numbers · Zeros</p>
+    <div style="margin-top:15px;color:#888">Incomprehensible cards:</div>
+    <div class="card">The zero that remembers yesterday's spin but forgets the color.</div>
+    <div class="card">A split bet that lands on both sides of the same number.</div>
+    <div class="card">Orphans of the wheel who never arrive.</div>
+    <div class="card">The ball that stops before it starts.</div>
+  </div>
+
+  <div class="panel right">
+    <h2>RIGHT — POKER</h2>
+    <p>Table · Hands · Stacks · Blinds</p>
+    <div style="margin-top:15px;color:#888">Incomprehensible cards:</div>
+    <div class="card">Ace of something that isn't a suit.</div>
+    <div class="card">A pair that is both higher and lower than itself.</div>
+    <div class="card">The river that flows upstream into the flop.</div>
+    <div class="card">All-in with cards that have no faces.</div>
+  </div>
+</div>
+
+<div style="text-align:center;margin-top:40px;font-size:.7rem;color:#444">
+  super simple · cheese casino upgrade · incomprehensible on purpose
+</div>
+</body>
+</html>
