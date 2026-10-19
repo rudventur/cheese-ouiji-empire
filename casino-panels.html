@@ -20,7 +20,7 @@ body{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:20px;
-  max-width:1100px;
+  max-width:1200px;
   margin:0 auto;
 }
 .panel{
@@ -32,6 +32,45 @@ body{
 .panel h2{color:#ffeb3b;margin-bottom:15px;border-bottom:1px solid #333;padding-bottom:8px}
 .left{border-color:#ff9933}
 .right{border-color:#00e5ff}
+
+/* Super simplified roulette table */
+.roulette-table{
+  display:grid;
+  grid-template-columns:40px repeat(3, 1fr);
+  gap:2px;
+  background:#0a0a0a;
+  padding:10px;
+  border:1px solid #333;
+  margin:15px 0;
+  font-size:0.85rem;
+  text-align:center;
+}
+.roulette-table .num{
+  padding:8px 4px;
+  border:1px solid #222;
+  background:#111;
+}
+.roulette-table .zero{
+  grid-column:1 / -1;
+  background:#006600;
+  color:#fff;
+  font-weight:bold;
+}
+.roulette-table .red{background:#8b0000;color:#fff}
+.roulette-table .black{background:#222;color:#fff}
+.roulette-table .outside{
+  grid-column:2 / -1;
+  display:flex;
+  gap:2px;
+  margin-top:4px;
+}
+.roulette-table .outside div{
+  flex:1;
+  padding:6px;
+  background:#111;
+  border:1px solid #333;
+  font-size:0.75rem;
+}
 .card{
   border:1px solid #333;
   padding:10px;
@@ -54,7 +93,30 @@ body{
 <div class="panels">
   <div class="panel left">
     <h2>LEFT — ROULETTE</h2>
-    <p>Wheel · Felt · Numbers · Zeros</p>
+    <p>Super simplified table</p>
+    
+    <div class="roulette-table">
+      <div class="num zero">0</div>
+      <div class="num red">1</div><div class="num black">2</div><div class="num red">3</div>
+      <div class="num black">4</div><div class="num red">5</div><div class="num black">6</div>
+      <div class="num red">7</div><div class="num black">8</div><div class="num red">9</div>
+      <div class="num black">10</div><div class="num black">11</div><div class="num red">12</div>
+      <div class="num black">13</div><div class="num red">14</div><div class="num black">15</div>
+      <div class="num red">16</div><div class="num black">17</div><div class="num red">18</div>
+      <div class="num red">19</div><div class="num black">20</div><div class="num red">21</div>
+      <div class="num black">22</div><div class="num red">23</div><div class="num black">24</div>
+      <div class="num red">25</div><div class="num black">26</div><div class="num red">27</div>
+      <div class="num black">28</div><div class="num black">29</div><div class="num red">30</div>
+      <div class="num black">31</div><div class="num red">32</div><div class="num black">33</div>
+      <div class="num red">34</div><div class="num black">35</div><div class="num red">36</div>
+      <div class="outside">
+        <div>1-12</div><div>13-24</div><div>25-36</div>
+      </div>
+      <div class="outside">
+        <div>1-18</div><div>EVEN</div><div>RED</div><div>BLACK</div><div>ODD</div><div>19-36</div>
+      </div>
+    </div>
+
     <div style="margin-top:15px;color:#888">Incomprehensible cards:</div>
     <div class="card">The zero that remembers yesterday's spin but forgets the color.</div>
     <div class="card">A split bet that lands on both sides of the same number.</div>
