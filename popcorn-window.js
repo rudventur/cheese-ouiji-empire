@@ -50,7 +50,7 @@
     zIndex: 2147483000,
     bottomOffset: 0,
     userOffset: 0,
-    chatUrl: 'https://rudventur.github.io/global-chat-v5/',
+    chatUrl: 'https://rudventur.github.io/map-merger-venti/translator_v7.html?tab=chat',
     button: true,
     segmentSec: 60,      // a new recorder starts every 60 s; two overlap -> 60..120 s back
     bitrate: 1500000,
